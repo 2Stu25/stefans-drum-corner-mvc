@@ -1,31 +1,642 @@
+
+/* =====================================================
+   STEFAN'S DRUM CORNER
+   MAIN STYLESHEET
+
+   CSS organisation:
+   01. Design Tokens
+   02. Reset & Base
+   03. Site Layout
+   04. Header & Navigation
+   05. Footer
+   06. Homepage
+   07. Gear Room
+   08. Practice Lab
+   09. About
+   10. Responsive Design
+   ===================================================== */
+
+
+
+/* =====================================================
+   01. DESIGN TOKENS
+   Central control for the entire website
+   ===================================================== */
+
+
+/* -----------------------------------------------------
+   LIGHT THEME (Default)
+----------------------------------------------------- */
+
+:root {
+    color-scheme: light;
+    /* Colours */
+
+    --color-background: #f5f3ed;
+    --color-surface: #ffffff;
+    --color-primary: #171717;
+    --color-secondary: #666666;
+    --color-muted: #cccccc;
+    --color-accent: #d71920;
+    --color-border: #e5e5e5;
+    --color-focus: #258cfb;
+    /* Typography */
+
+    --font-heading: 'Oswald', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-label: 'Oswald', sans-serif;
+    --font-size-small: 0.85rem;
+    --font-size-normal: 1rem;
+    --font-size-large: 1.15rem;
+    --font-size-heading: 1.2rem;
+    /* Layout */
+
+    --site-max-width: 1320px;
+    --content-max-width: 1100px;
+    /* Spacing */
+
+    --space-xs: 8px;
+    --space-sm: 15px;
+    --space-md: 25px;
+    --space-lg: 40px;
+    --space-xl: 65px;
+    --space-xxl: 90px;
+    /* Borders */
+
+    --border-standard: 1px solid var(--color-border);
+    --border-radius: 3px;
+    /* Effects */
+
+    --transition-standard: 0.2s ease;
+}
+
+
+/* -----------------------------------------------------
+   DARK THEME
+   Overrides colour variables only
+----------------------------------------------------- */
+
+[data-theme="dark"] {
+    color-scheme: dark;
+    --color-background: #191d22;
+    --color-surface: #252a30;
+    --color-primary: #f3f0e9;
+    --color-secondary: #b8bbc0;
+    --color-muted: #aeb3ba;
+    --color-accent: #e35a60;
+    --color-border: #41464d;
+    --color-focus: #6daeff;
+    --border-standard: 1px solid var(--color-border);
+}
+
+
+
+/* =====================================================
+   02. RESET & BASE
+   General HTML and body styling
+   ===================================================== */
+
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    font-family: var(--font-body);
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* Global headings */
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+
+/* Bootstrap focus accessibility */
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem var(--color-focus);
 }
+
+
+/* Bootstrap floating form placeholders */
+
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+
+/* =====================================================
+   03. SITE LAYOUT
+   General page structure and containers
+   ===================================================== */
+
+/* Reserved for shared layout styling */
+
+
+/* =====================================================
+   04. HEADER & NAVIGATION
+   Logo, navigation bar and menu
+   ===================================================== */
+
+.drum-navbar {
+    background-color: var(--color-primary);
+    padding: 18px 0;
+}
+
+.drum-navbar .navbar-brand {
+    color: var(--color-surface);
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.drum-navbar .navbar-brand:hover {
+    color: var(--color-surface);
+}
+
+.drum-navbar .nav-link {
+    color: var(--color-muted);
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 10px 14px !important;
+}
+
+.drum-navbar .nav-link:hover {
+    color: var(--color-surface);
+}
+
+
+/* =====================================================
+   05. FOOTER
+   Footer styling
+   ===================================================== */
+
+/* Reserved for footer styling */
+
+
+
+/* =====================================================
+   06. HOMEPAGE
+   Editorial magazine layout
+   ===================================================== */
+
+
+/* -----------------------------------------------------
+   06.01 MAIN EDITORIAL FEATURE
+----------------------------------------------------- */
+
+.editorial-hero {
+    background-color: var(--color-surface);
+    border-bottom: var(--border-standard);
+}
+
+.editorial-hero-grid {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    min-height: 340px;
+}
+
+.editorial-hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--space-lg) var(--space-lg) var(--space-lg) 0;
+}
+
+    .editorial-hero-content h1 {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        line-height: 0.98;
+        font-weight: 700;
+        margin: var(--space-sm) 0;
+    }
+
+    .editorial-hero-content p {
+        color: var(--color-secondary);
+        font-size: var(--font-size-large);
+        line-height: 1.6;
+        max-width: 420px;
+        margin-bottom: var(--space-md);
+    }
+
+
+/* Editorial labels */
+
+.editorial-label {
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
+
+/* Main feature image placeholder */
+
+.editorial-hero-image {
+    background-color: #343a40;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 340px;
+    letter-spacing: 2px;
+    font-size: var(--font-size-small);
+}
+
+
+/* Editorial button */
+
+.editorial-button {
+    display: inline-block;
+    background-color: var(--color-accent);
+    color: #ffffff;
+    padding: 12px 22px;
+    font-family: var(--font-label);
+    font-weight: 600;
+    font-size: var(--font-size-small);
+    text-decoration: none;
+    letter-spacing: 0.7px;
+    transition: opacity var(--transition-standard);
+}
+
+    .editorial-button:hover {
+        color: #ffffff;
+        opacity: 0.85;
+    }
+
+
+/* -----------------------------------------------------
+   06.02 MAIN CONTENT LAYOUT
+----------------------------------------------------- */
+
+.home-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 0.9fr);
+    gap: var(--space-lg);
+    padding-top: var(--space-md);
+    padding-bottom: var(--space-lg);
+}
+
+.home-main-column {
+    min-width: 0;
+}
+
+.home-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    min-width: 0;
+}
+
+
+/* -----------------------------------------------------
+   06.03 SECTION HEADINGS
+----------------------------------------------------- */
+
+.editorial-section {
+    margin-bottom: var(--space-md);
+}
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    padding-bottom: 10px;
+    border-bottom: var(--border-standard);
+}
+
+    .section-heading h2 {
+        font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+        margin: 2px 0 0;
+    }
+
+.section-link {
+    color: var(--color-primary);
+    font-family: var(--font-label);
+    font-size: var(--font-size-small);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .section-link:hover {
+        color: var(--color-accent);
+    }
+
+
+/* -----------------------------------------------------
+   06.04 ARTICLE CARDS
+----------------------------------------------------- */
+
+.article-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
+}
+
+.article-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-surface);
+    border: var(--border-standard);
+    min-width: 0;
+}
+
+.article-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 16 / 9;
+    background-color: #343a40;
+    color: #ffffff;
+    font-size: var(--font-size-small);
+    letter-spacing: 1px;
+}
+
+.article-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: var(--space-sm);
+}
+
+.article-category {
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+}
+
+.article-content h3 {
+    font-size: 1.2rem;
+    line-height: 1.2;
+    margin: 7px 0;
+}
+
+.article-content p {
+    color: var(--color-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: var(--space-sm);
+}
+
+.article-content a,
+.about-content a {
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+    text-decoration: none;
+    margin-top: auto;
+}
+
+    .article-content a:hover,
+    .about-content a:hover {
+        text-decoration: underline;
+    }
+
+
+/* -----------------------------------------------------
+   06.05 SIDEBAR FEATURES
+----------------------------------------------------- */
+
+.sidebar-feature {
+    padding: var(--space-md);
+    border: var(--border-standard);
+}
+
+.sidebar-feature-dark {
+    background-color: #202830;
+    color: #ffffff;
+    border-color: #202830;
+}
+
+.sidebar-feature-light {
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+}
+
+.sidebar-label {
+    display: inline-block;
+    background-color: var(--color-accent);
+    color: #ffffff;
+    padding: 3px 8px;
+    font-family: var(--font-label);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+}
+
+.sidebar-feature h2 {
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin: 10px 0;
+}
+
+.sidebar-feature p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: var(--space-sm);
+}
+
+.sidebar-feature-dark p {
+    color: #d0d3d6;
+}
+
+.sidebar-feature a {
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sidebar-feature-dark a {
+    color: #ffffff;
+}
+
+.sidebar-feature a:hover {
+    text-decoration: underline;
+}
+
+
+/* -----------------------------------------------------
+   06.06 ABOUT FEATURE
+----------------------------------------------------- */
+
+.about-feature {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    background-color: var(--color-surface);
+    border: var(--border-standard);
+    margin-top: var(--space-md);
+}
+
+.about-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 180px;
+    background-color: #343a40;
+    color: #ffffff;
+    font-size: var(--font-size-small);
+    letter-spacing: 1px;
+}
+
+.about-content {
+    padding: var(--space-md);
+}
+
+.about-content h2 {
+    font-size: 1.6rem;
+    line-height: 1.15;
+    margin: 5px 0 10px;
+}
+
+.about-content p {
+    color: var(--color-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: var(--space-sm);
+}
+
+
+/* =====================================================
+   07. GEAR ROOM
+   Equipment catalogue and details
+   ===================================================== */
+
+/* Reserved for Gear Room styling */
+
+
+/* =====================================================
+   08. PRACTICE LAB
+   Exercises, notation and practice material
+   ===================================================== */
+
+/* Reserved for Practice Lab styling */
+
+
+/* =====================================================
+   09. ABOUT
+   About page styling
+   ===================================================== */
+
+/* Reserved for About page styling */
+
+
+
+/* =====================================================
+   10. RESPONSIVE DESIGN
+   Shared tablet and mobile adjustments
+   ===================================================== */
+
+
+/* -----------------------------------------------------
+   TABLET
+----------------------------------------------------- */
+
+@media (max-width: 991px) {
+
+    .home-content-grid {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: var(--space-md);
+    }
+
+    .article-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .editorial-hero-grid {
+        grid-template-columns: 0.9fr 1.1fr;
+    }
+}
+
+
+/* -----------------------------------------------------
+   MOBILE
+----------------------------------------------------- */
+
+@media (max-width: 767px) {
+
+    .editorial-hero-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .editorial-hero-content {
+        padding: var(--space-lg) 0;
+    }
+
+    .editorial-hero-image {
+        min-height: 220px;
+    }
+
+    .home-content-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    .article-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .section-heading {
+        align-items: flex-start;
+    }
+
+        .section-heading h2 {
+            font-size: 1.4rem;
+        }
+
+    .about-feature {
+        grid-template-columns: 1fr;
+    }
+
+    .about-image {
+        min-height: 200px;
+    }
+}
+
+
+/* -----------------------------------------------------
+   SMALL MOBILE
+----------------------------------------------------- */
+
+@media (max-width: 480px) {
+
+    .article-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-link {
+        font-size: 0.75rem;
+    }
+}
+

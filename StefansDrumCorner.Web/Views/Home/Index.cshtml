@@ -1,8 +1,263 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<main class="home-page">
+
+    <!-- MAIN EDITORIAL FEATURE -->
+
+    <section class="editorial-hero">
+
+        <div class="container editorial-hero-grid">
+
+            <div class="editorial-hero-content">
+
+                <span class="editorial-label">WELCOME TO</span>
+
+                <h1>Stefan's Drum Corner</h1>
+
+                <p>
+                    Gear, technique, practice and ideas
+                    from a lifetime behind the kit.
+                </p>
+
+                <a href="#practice-room" class="editorial-button">
+                    EXPLORE THE CORNER
+                </a>
+
+            </div>
+
+            <div class="editorial-hero-image">
+                <span>MAIN FEATURE IMAGE</span>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- MAIN CONTENT AREA -->
+
+    <div class="container home-content-grid">
+
+        <div class="home-main-column">
+
+
+            <!-- PRACTICE ROOM -->
+
+            <section class="editorial-section" id="practice-room">
+
+                <div class="section-heading">
+
+                    <div>
+                        <span class="editorial-label">PRACTICE ROOM</span>
+                        <h2>Build Skills. Improve Control.</h2>
+                    </div>
+
+                    <a href="#practice-room" class="section-link">
+                        VIEW ALL PRACTICE →
+                    </a>
+
+                </div>
+
+
+                <div class="article-grid">
+
+                    <article class="article-card">
+
+                        <div class="article-image">
+                            <span>IMAGE 01</span>
+                        </div>
+
+                        <div class="article-content">
+                            <span class="article-category">
+                                01 / TECHNIQUE
+                            </span>
+
+                            <h3>Hybrid Rudiments</h3>
+
+                            <p>
+                                Traditional rudiments, modern combinations,
+                                coordination and control.
+                            </p>
+
+                            <a href="#practice-room">READ MORE →</a>
+                        </div>
+
+                    </article>
+
+
+                    <article class="article-card">
+
+                        <div class="article-image">
+                            <span>IMAGE 02</span>
+                        </div>
+
+                        <div class="article-content">
+                            <span class="article-category">
+                                02 / PRACTICE LAB
+                            </span>
+
+                            <h3>Polymeter Exercises</h3>
+
+                            <p>
+                                Explore unusual groupings, rhythmic
+                                combinations and independent patterns.
+                            </p>
+
+                            <a href="#practice-room">READ MORE →</a>
+                        </div>
+
+                    </article>
+
+
+                    <article class="article-card">
+
+                        <div class="article-image">
+                            <span>IMAGE 03</span>
+                        </div>
+
+                        <div class="article-content">
+                            <span class="article-category">
+                                03 / LIBRARY
+                            </span>
+
+                            <h3>Sheet Music & Transcriptions</h3>
+
+                            <p>
+                                Notation examples, transcriptions
+                                and material for structured practice.
+                            </p>
+
+                            <a href="#practice-room">READ MORE →</a>
+                        </div>
+
+                    </article>
+
+
+                    <article class="article-card">
+
+                        <div class="article-image">
+                            <span>IMAGE 04</span>
+                        </div>
+
+                        <div class="article-content">
+                            <span class="article-category">
+                                04 / TOOLS
+                            </span>
+
+                            <h3>Sample Accurate Metronome</h3>
+
+                            <p>
+                                A practical tool for timing accuracy
+                                with subdivisions and dynamic functionality.
+                            </p>
+
+                            <a href="#practice-room">READ MORE →</a>
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- ABOUT FEATURE -->
+
+            <section class="about-feature" id="about">
+
+                <div class="about-image">
+                    <span>ABOUT IMAGE</span>
+                </div>
+
+                <div class="about-content">
+
+                    <span class="editorial-label">ABOUT STEFAN</span>
+
+                    <h2>A Lifetime Behind the Drums</h2>
+
+                    <p>
+                        From rock bands and recording to drumming
+                        experiences and musical exploration.
+                        This is a place for sharing what I've learned
+                        and what I'm still discovering.
+                    </p>
+
+                    <a href="#about">READ MY STORY →</a>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- SIDEBAR -->
+
+        <aside class="home-sidebar">
+
+
+            <!-- GEAR ROOM -->
+
+            <section class="sidebar-feature sidebar-feature-dark"
+                     id="gear-room">
+
+                <span class="sidebar-label">GEAR ROOM</span>
+
+                <h2>Drum Kit, Cymbals & Sticks</h2>
+
+                <p>
+                    Explore my drum kit, cymbals, drumsticks,
+                    collection and more.
+                </p>
+
+                <a href="#gear-room">VIEW GEAR →</a>
+
+            </section>
+
+
+            <!-- USED GEAR RESEARCH -->
+
+            <section class="sidebar-feature sidebar-feature-light">
+
+                <span class="editorial-label">FEATURE</span>
+
+                <h2>Used Gear Price Research</h2>
+
+                <p>
+                    Real sold prices from the second-hand market.
+                    Compare brands, models and trends.
+                </p>
+
+                <a href="#gear-room">LEARN MORE →</a>
+
+            </section>
+
+
+            <!-- DOWNLOADS -->
+
+            <section class="sidebar-feature sidebar-feature-light"
+                     id="downloads">
+
+                <span class="editorial-label">DOWNLOADS</span>
+
+                <h2>Tools for Better Practice</h2>
+
+                <p>
+                    Sheet music, exercises and useful tools
+                    for your development.
+                </p>
+
+                <a href="#downloads">BROWSE DOWNLOADS →</a>
+
+            </section>
+
+
+        </aside>
+
+    </div>
+
+</main>
+
