@@ -361,3 +361,15 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Stefan's Drum Corner additional exclusions
+
+# Local environment files
+.env
+.env.*
+
+# Operating system files
+Thumbs.db
+.DS_Store
+
+**/appsettings.Development.json
