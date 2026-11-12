@@ -156,38 +156,167 @@ h1, h2, h3, h4, h5, h6 {
 /* Reserved for shared layout styling */
 
 
+
+
 /* =====================================================
    04. HEADER & NAVIGATION
-   Logo, navigation bar and menu
+   Editorial magazine-style masthead
    ===================================================== */
 
-.drum-navbar {
+
+/* -----------------------------------------------------
+   04.01 MASTHEAD
+----------------------------------------------------- */
+
+.site-masthead {
     background-color: var(--color-primary);
-    padding: 18px 0;
+    padding: 24px 0;
 }
 
-.drum-navbar .navbar-brand {
-    color: var(--color-surface);
+.masthead-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 0.8fr;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+
+/* -----------------------------------------------------
+   04.02 BRAND
+----------------------------------------------------- */
+
+.masthead-brand {
+    display: inline-block;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.masthead-title {
+    display: flex;
+    flex-direction: column;
+    color: var(--color-background);
     font-family: var(--font-heading);
-    font-size: 1.25rem;
+    font-size: clamp(2rem, 4vw, 3.4rem);
     font-weight: 700;
     letter-spacing: 1px;
+    line-height: 0.95;
 }
 
-.drum-navbar .navbar-brand:hover {
-    color: var(--color-surface);
+    .masthead-title span {
+        color: var(--color-accent);
+    }
+
+
+/* -----------------------------------------------------
+   04.03 MASTHEAD DESCRIPTION
+----------------------------------------------------- */
+
+.masthead-description {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--color-border);
+    padding-left: var(--space-lg);
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-background);
 }
 
-.drum-navbar .nav-link {
-    color: var(--color-muted);
+
+/* -----------------------------------------------------
+   04.04 MASTHEAD TAGLINE
+----------------------------------------------------- */
+
+.masthead-tagline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-left: 1px solid var(--color-border);
+    padding-left: var(--space-lg);
+    color: var(--color-background);
+    font-family: var(--font-label);
     font-size: var(--font-size-small);
     font-weight: 600;
     letter-spacing: 1px;
-    padding: 10px 14px !important;
+    line-height: 1.5;
 }
 
-.drum-navbar .nav-link:hover {
-    color: var(--color-surface);
+.tagline-star {
+    color: var(--color-accent);
+    font-size: 1.4rem;
+    margin-top: 4px;
+}
+
+
+/* -----------------------------------------------------
+   04.05 MAIN NAVIGATION
+----------------------------------------------------- */
+
+.drum-navbar {
+    background-color: var(--color-surface);
+    border-bottom: var(--border-standard);
+    padding: 0;
+}
+
+    .drum-navbar .navbar-nav {
+        gap: var(--space-sm);
+    }
+
+    .drum-navbar .nav-link {
+        color: var(--color-primary);
+        font-family: var(--font-label);
+        font-size: var(--font-size-small);
+        font-weight: 600;
+        letter-spacing: 1px;
+        padding: 15px 12px;
+        transition: color var(--transition-standard);
+    }
+
+        .drum-navbar .nav-link:hover,
+        .drum-navbar .nav-link:focus {
+            color: var(--color-accent);
+        }
+
+
+    /* -----------------------------------------------------
+   04.06 MOBILE NAVIGATION
+----------------------------------------------------- */
+
+    .drum-navbar .navbar-toggler {
+        border-color: var(--color-border);
+        margin: 8px 0;
+    }
+
+        .drum-navbar .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.15rem var(--color-accent);
+        }
+
+
+/* -----------------------------------------------------
+   04.07 RESPONSIVE MASTHEAD
+----------------------------------------------------- */
+
+@media (max-width: 767px) {
+
+    .masthead-grid {
+        grid-template-columns: 1fr auto;
+        gap: var(--space-md);
+    }
+
+    .masthead-title {
+        font-size: clamp(1.8rem, 6vw, 2.5rem);
+    }
+
+    .masthead-description {
+        display: none;
+    }
+
+    .masthead-tagline {
+        font-size: 0.7rem;
+        padding-left: var(--space-md);
+    }
 }
 
 
@@ -206,76 +335,154 @@ h1, h2, h3, h4, h5, h6 {
    ===================================================== */
 
 
+
+
 /* -----------------------------------------------------
    06.01 MAIN EDITORIAL FEATURE
 ----------------------------------------------------- */
 
 .editorial-hero {
-    background-color: var(--color-surface);
-    border-bottom: var(--border-standard);
+    overflow: hidden;
 }
+
+/* Hero layout */
 
 .editorial-hero-grid {
-    display: grid;
-    grid-template-columns: 0.8fr 1.2fr;
-    min-height: 340px;
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1024 / 357;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
 }
+
+
+/* Hero layout */
+
+.editorial-hero-grid {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1024 / 357;
+    min-height: 357px;
+    overflow: hidden;
+}
+
+/* Hero text content */
 
 .editorial-hero-content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
-    padding: var(--space-lg) var(--space-lg) var(--space-lg) 0;
+    padding: 10% 55px 35px;
+    box-sizing: border-box;
+    background: transparent;
+    max-width: 600px;
 }
 
-    .editorial-hero-content h1 {
-        font-size: clamp(2.5rem, 5vw, 4rem);
-        line-height: 0.98;
-        font-weight: 700;
-        margin: var(--space-sm) 0;
-    }
+/* Main feature image */
 
-    .editorial-hero-content p {
-        color: var(--color-secondary);
-        font-size: var(--font-size-large);
-        line-height: 1.6;
-        max-width: 420px;
-        margin-bottom: var(--space-md);
-    }
+.editorial-hero-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
 
+.editorial-hero-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
 
-/* Editorial labels */
+/* Dark gradient blending into photograph */
+
+.editorial-hero-image::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient( to right, rgba(20, 12, 14, 0.65) 0%, rgba(20, 12, 14, 0.42) 25%, rgba(20, 12, 14, 0.15) 50%, transparent 70% );
+    pointer-events: none;
+}
+
+/* Editorial label */
 
 .editorial-label {
-    color: var(--color-accent);
+    color: #c42846;
     font-family: var(--font-label);
     font-size: var(--font-size-small);
     font-weight: 700;
     letter-spacing: 1.2px;
 }
 
-
-/* Main feature image placeholder */
+/* Main feature image */
 
 .editorial-hero-image {
-    background-color: #343a40;
-    color: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 340px;
-    letter-spacing: 2px;
-    font-size: var(--font-size-small);
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
+    .editorial-hero-image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        object-position: center;
+    }
+
+/* Dark gradient blending into photograph */
+
+.editorial-hero-image::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient( to right, #2c1318 0%, rgba(44, 19, 24, 0.90) 4%, rgba(44, 19, 24, 0.55) 13%, transparent 27% );
+    pointer-events: none;
+}
+
+.editorial-hero-content {
+    z-index: 2;
+    color: #F5F0F2;
+}
+
+    .editorial-hero-content h1 {
+        color: #FFFFFF;
+    }
+
+    .editorial-hero-content p {
+        color: #E0D6DA;
+    }
+
+    .editorial-hero-content .editorial-label {
+        color: #E04460;
+    }
+
+    .editorial-hero-content .editorial-button {
+        color: #FFFFFF;
+    }
 
 /* Editorial button */
 
 .editorial-button {
     display: inline-block;
-    background-color: var(--color-accent);
-    color: #ffffff;
+    background-color: #c42846;
+    color: #FFFFFF;
     padding: 12px 22px;
     font-family: var(--font-label);
     font-weight: 600;
@@ -286,10 +493,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
     .editorial-button:hover {
-        color: #ffffff;
+        color: #FFFFFF;
         opacity: 0.85;
     }
-
 
 /* -----------------------------------------------------
    06.02 MAIN CONTENT LAYOUT
@@ -297,7 +503,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-content-grid {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(260px, 0.9fr);
+    grid-template-columns: 0.75fr 1.25fr;
     gap: var(--space-lg);
     padding-top: var(--space-md);
     padding-bottom: var(--space-lg);
@@ -370,14 +576,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .article-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: relative;
+    overflow: hidden;
     aspect-ratio: 16 / 9;
-    background-color: #343a40;
-    color: #ffffff;
-    font-size: var(--font-size-small);
-    letter-spacing: 1px;
+    background-color: #222;
+}
+
+    .article-image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform 0.4s ease;
+    }
+
+.article-card:hover .article-image img {
+    transform: scale(1.03);
 }
 
 .article-content {
@@ -500,14 +715,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .about-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+    min-height: 220px;
     background-color: #343a40;
-    color: #ffffff;
-    font-size: var(--font-size-small);
-    letter-spacing: 1px;
+}
+
+.about-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 220px;
+    max-height: 280px;
+    object-fit: cover;
+    object-position: center;
 }
 
 .about-content {
@@ -526,7 +747,6 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 1.6;
     margin-bottom: var(--space-sm);
 }
-
 
 /* =====================================================
    07. GEAR ROOM
@@ -576,6 +796,11 @@ h1, h2, h3, h4, h5, h6 {
 
     .editorial-hero-grid {
         grid-template-columns: 0.9fr 1.1fr;
+        min-height: 420px;
+    }
+
+    .editorial-hero-image {
+        min-height: 420px;
     }
 }
 
@@ -588,40 +813,26 @@ h1, h2, h3, h4, h5, h6 {
 
     .editorial-hero-grid {
         grid-template-columns: 1fr;
+        min-height: 0;
     }
 
     .editorial-hero-content {
         padding: var(--space-lg) 0;
     }
 
-    .editorial-hero-image {
-        min-height: 220px;
-    }
-
-    .home-content-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-md);
-    }
-
-    .article-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .section-heading {
-        align-items: flex-start;
-    }
-
-        .section-heading h2 {
-            font-size: 1.4rem;
+        .editorial-hero-content h1 {
+            font-size: clamp(2.5rem, 9vw, 3.5rem);
         }
 
-    .about-feature {
-        grid-template-columns: 1fr;
+    .editorial-hero-image {
+        min-height: 280px;
     }
 
-    .about-image {
-        min-height: 200px;
-    }
+        .editorial-hero-image::before {
+            background: linear-gradient( to bottom, #170a10 0%, rgba(23, 10, 16, 0.55) 20%, transparent 60% );
+        }
+
+    /* Keep the rest of your existing mobile rules here */
 }
 
 

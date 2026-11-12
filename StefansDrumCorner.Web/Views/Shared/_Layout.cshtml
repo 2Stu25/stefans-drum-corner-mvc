@@ -17,57 +17,112 @@
 </head>
 <body>
 
-    <header>
-        <nav class="navbar navbar-expand-md navbar-dark drum-navbar">
-            <div class="container">
+    
+   
 
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    STEFAN'S DRUM CORNER
+    <header class="site-header">
+
+        <!-- MASTHEAD -->
+
+        <div class="site-masthead">
+            <div class="container masthead-grid">
+
+                <a class="masthead-brand"
+                   asp-controller="Home"
+                   asp-action="Index">
+
+                    <span class="masthead-title">
+                        STEFAN'S
+                        <span>DRUM CORNER</span>
+                    </span>
+
                 </a>
 
-                <button class="navbar-toggler" type="button"
+                <div class="masthead-description">
+                    <span>DRUMS</span>
+                    <span>TECHNIQUE</span>
+                    <span>GEAR</span>
+                    <span>PRACTICE</span>
+                </div>
+
+                <div class="masthead-tagline">
+                    <span>BETTER TIMING</span>
+                    <span>BETTER SOUNDS</span>
+                    <span>BETTER DRUMMING</span>
+                    <span class="tagline-star">★</span>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- MAIN NAVIGATION -->
+
+        <nav class="navbar navbar-expand-md drum-navbar">
+            <div class="container">
+
+                <button class="navbar-toggler"
+                        type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#mainNavigation"
                         aria-controls="mainNavigation"
                         aria-expanded="false"
                         aria-label="Toggle navigation">
+
                     <span class="navbar-toggler-icon"></span>
+
                 </button>
 
-                <div class="collapse navbar-collapse" id="mainNavigation">
+                <div class="collapse navbar-collapse"
+                     id="mainNavigation">
 
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav">
 
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">
-                                HOME
-                            </a>
+                            <a class="nav-link"
+                               asp-controller="Home"
+                               asp-action="Index">HOME</a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="GearRoom">
-                                GEAR ROOM
-                            </a>
+                            <a class="nav-link"
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-fragment="videos">VIDEOS</a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="PracticeLab">
-                                PRACTICE LAB
-                            </a>
+                            <a class="nav-link"
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-fragment="practice-lab">PRACTICE LAB</a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="About">
-                                ABOUT
-                            </a>
+                            <a class="nav-link"
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-fragment="gear-room">GEAR ROOM</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-fragment="drum-tools">DRUM TOOLS</a>
                         </li>
 
                     </ul>
 
                 </div>
+
             </div>
         </nav>
+
     </header>
+
+
+
 
     <div class="container">
         <main role="main" class="pb-3">
