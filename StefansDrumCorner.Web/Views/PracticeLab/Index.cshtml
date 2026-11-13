@@ -191,8 +191,12 @@
 
     </section>
 
-    <div class="modal fade" id="sheetMusicModal" tabindex="-1"
-         aria-labelledby="sheetMusicModalLabel" aria-hidden="true">
+    <div class="modal fade"
+         id="sheetMusicModal"
+         tabindex="-1"
+         data-bs-backdrop="false"
+         data-bs-keyboard="false"
+         data-bs-scroll="true">
 
         <div class="modal-dialog modal-xl modal-dialog-centered">
 
@@ -209,14 +213,57 @@
                     </button>
                 </div>
 
-                <div class="modal-body p-0">
-                    <iframe id="sheetMusicFrame"
-                            title="Sheet Music"
-                            width="100%"
-                            height="800"
-                            style="border: none;">
-                    </iframe>
+                
+                <div class="modal-body">
+
+                    <div class="pdf-viewer">
+
+                        <div class="pdf-toolbar">
+
+                            <button type="button"
+                                    id="pdfPrevPage"
+                                    class="pdf-control">
+                                PREVIOUS
+                            </button>
+
+                            <span id="pdfPageInfo">
+                                Page 0 of 0
+                            </span>
+
+                            <button type="button"
+                                    id="pdfNextPage"
+                                    class="pdf-control">
+                                NEXT
+                            </button>
+
+                            <div class="pdf-zoom-controls">
+
+                                <button type="button"
+                                        id="pdfZoomOut"
+                                        class="pdf-control">
+                                    −
+                                </button>
+
+                                <span id="pdfZoomLevel">100%</span>
+
+                                <button type="button"
+                                        id="pdfZoomIn"
+                                        class="pdf-control">
+                                    +
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <div class="pdf-canvas-container">
+                            <canvas id="pdfCanvas"></canvas>
+                        </div>
+
+                    </div>
+
                 </div>
+
 
             </div>
         </div>
@@ -225,24 +272,180 @@
 
 </div>
 
-<script>
-    const sheetMusicModal = document.getElementById('sheetMusicModal');
-    const sheetMusicFrame = document.getElementById('sheetMusicFrame');
-    const sheetMusicTitle = document.getElementById('sheetMusicModalLabel');
 
-    sheetMusicModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const pdfPath = button.getAttribute('data-pdf');
+<script type="module">
+    import * as pdfjsLib from '/lib/pdfjs/build/pdf.mjs';
 
-        sheetMusicFrame.src = pdfPath + "#toolbar=0&navpanes=0&scrollbar=1";
-        sheetMusicTitle.textContent =
-            pdfPath.includes('study')
-                ? 'Study Version'
-                : 'Full Etude';
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        '/lib/pdfjs/build/pdf.worker.mjs';
+
+    const modal = document.getElementById('sheetMusicModal');
+    const canvas = document.getElementById('pdfCanvas');
+    const container = document.querySelector('.pdf-canvas-container');
+
+    const ctx = canvas.getContext('2d');
+
+    const prevButton = document.getElementById('pdfPrevPage');
+    const nextButton = document.getElementById('pdfNextPage');
+    const zoomOutButton = document.getElementById('pdfZoomOut');
+    const zoomInButton = document.getElementById('pdfZoomIn');
+
+    const pageInfo = document.getElementById('pdfPageInfo');
+    const zoomLevel = document.getElementById('pdfZoomLevel');
+
+    let pdfDocument = null;
+    let currentPage = 1;
+    let zoom = 1;
+    let renderTask = null;
+    let pdfUrl = null;
+
+    
+    document.querySelectorAll(
+        '[data-bs-target="#sheetMusicModal"][data-pdf]'
+    ).forEach(button => {
+
+        button.addEventListener('click', function () {
+            pdfUrl = this.getAttribute('data-pdf');
+            console.log('Selected PDF:', pdfUrl);
+        });
+
     });
 
-    sheetMusicModal.addEventListener('hidden.bs.modal', function () {
-        sheetMusicFrame.src = '';
+    modal.addEventListener('show.bs.modal', function (event) {
+
+        const trigger = event.relatedTarget;
+
+        if (trigger?.hasAttribute('data-pdf')) {
+            pdfUrl = trigger.getAttribute('data-pdf');
+        }
+
+    });
+
+
+    modal.addEventListener('shown.bs.modal', async function () {
+            if (!pdfUrl) {
+                console.error('No PDF file selected. Check the data-pdf attribute.');
+                pageInfo.textContent = 'No PDF selected';
+                return;
+            }
+
+        try {
+            const loadingTask = pdfjsLib.getDocument({
+                url: pdfUrl
+            });
+            pdfDocument = await loadingTask.promise;
+
+            currentPage = 1;
+            zoom = 1;
+
+            await renderPage();
+
+        } catch (error) {
+            console.error('PDF loading error:', error);
+            pageInfo.textContent = 'Unable to load PDF';
+        }
+    });
+
+    async function renderPage() {
+        if (!pdfDocument) return;
+
+        if (renderTask) {
+            renderTask.cancel();
+            renderTask = null;
+        }
+
+        const page = await pdfDocument.getPage(currentPage);
+
+        const baseViewport = page.getViewport({ scale: 1 });
+
+        const availableWidth = container.clientWidth - 40;
+
+        const fitScale = availableWidth / baseViewport.width;
+
+        const scale = fitScale * zoom;
+
+        const viewport = page.getViewport({ scale });
+
+        const pixelRatio = window.devicePixelRatio || 1;
+
+        canvas.width = Math.floor(viewport.width * pixelRatio);
+        canvas.height = Math.floor(viewport.height * pixelRatio);
+
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
+
+        const renderContext = {
+            canvasContext: ctx,
+            viewport: viewport,
+            transform: pixelRatio !== 1
+                ? [pixelRatio, 0, 0, pixelRatio, 0, 0]
+                : null
+        };
+
+        renderTask = page.render(renderContext);
+
+        try {
+            await renderTask.promise;
+        } catch (error) {
+            if (error.name !== 'RenderingCancelledException') {
+                throw error;
+            }
+        }
+
+        pageInfo.textContent =
+            `Page ${currentPage} of ${pdfDocument.numPages}`;
+
+        zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
+
+        prevButton.disabled = currentPage <= 1;
+        nextButton.disabled = currentPage >= pdfDocument.numPages;
+    }
+
+    prevButton.addEventListener('click', async function () {
+        if (currentPage > 1) {
+            currentPage--;
+            await renderPage();
+        }
+    });
+
+    nextButton.addEventListener('click', async function () {
+        if (pdfDocument && currentPage < pdfDocument.numPages) {
+            currentPage++;
+            await renderPage();
+        }
+    });
+
+    zoomInButton.addEventListener('click', async function () {
+        if (zoom < 2) {
+            zoom = Math.min(2, zoom + 0.1);
+            await renderPage();
+        }
+    });
+
+    zoomOutButton.addEventListener('click', async function () {
+        if (zoom > 0.5) {
+            zoom = Math.max(0.5, zoom - 0.1);
+            await renderPage();
+        }
+    });
+
+    modal.addEventListener('hidden.bs.modal', function () {
+        if (renderTask) {
+            renderTask.cancel();
+            renderTask = null;
+        }
+
+        pdfDocument = null;
+        pdfUrl = null;
+        currentPage = 1;
+        zoom = 1;
+
+        canvas.width = 0;
+        canvas.height = 0;
+
+        pageInfo.textContent = 'Page 0 of 0';
+        zoomLevel.textContent = '100%';
     });
 </script>
+
 
