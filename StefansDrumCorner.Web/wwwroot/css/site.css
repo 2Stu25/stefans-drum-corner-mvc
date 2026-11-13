@@ -794,12 +794,331 @@ h1, h2, h3, h4, h5, h6 {
 /* Reserved for Gear Room styling */
 
 
+
 /* =====================================================
    08. PRACTICE LAB
-   Exercises, notation and practice material
+   Editorial study and training layout
    ===================================================== */
 
-/* Reserved for Practice Lab styling */
+
+/* -----------------------------------------------------
+   08.01 PAGE INTRODUCTION
+   ----------------------------------------------------- */
+
+.practice-lab-page {
+    max-width: var(--site-max-width);
+    margin: 0 auto;
+    padding: var(--space-lg) var(--space-md) var(--space-xl);
+}
+
+.practice-lab-header {
+    max-width: 850px;
+    margin-bottom: var(--space-xl);
+}
+
+.practice-lab-kicker {
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+}
+
+.practice-lab-header h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+    margin-bottom: 16px;
+}
+
+.practice-lab-intro {
+    max-width: 760px;
+    color: var(--color-secondary);
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+.practice-lab-rule {
+    width: 100%;
+    height: 4px;
+    background: var(--color-primary);
+    margin-top: var(--space-lg);
+}
+
+
+/* -----------------------------------------------------
+   08.02 SECTION HEADINGS
+   ----------------------------------------------------- */
+
+.practice-lab-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 10px;
+    margin-bottom: 22px;
+    font-family: var(--font-label);
+    font-size: var(--font-size-small);
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
+.practice-lab-section-number {
+    color: var(--color-secondary);
+    font-size: 0.75rem;
+}
+
+
+/* -----------------------------------------------------
+   08.03 SUBJECT GRID
+   ----------------------------------------------------- */
+
+.practice-lab-topics {
+    margin-bottom: var(--space-xl);
+}
+
+.practice-lab-topic-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.practice-lab-topic {
+    display: flex;
+    flex-direction: column;
+    min-height: 210px;
+    padding: 22px;
+    background: var(--color-surface);
+    border: var(--border-standard);
+    border-top: 3px solid var(--color-primary);
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: border-color var(--transition-standard), transform var(--transition-standard);
+}
+
+    .practice-lab-topic:hover {
+        color: var(--color-primary);
+        border-top-color: var(--color-accent);
+        transform: translateY(-3px);
+    }
+
+.topic-number {
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 18px;
+}
+
+.practice-lab-topic h2 {
+    font-size: 1.35rem;
+    margin-bottom: 10px;
+}
+
+.practice-lab-topic p {
+    color: var(--color-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.topic-arrow {
+    margin-top: auto;
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+
+/* -----------------------------------------------------
+   08.04 MATERIAL COLLECTION
+   ----------------------------------------------------- */
+
+.practice-lab-materials {
+    margin-bottom: var(--space-xl);
+}
+
+.practice-lab-material {
+    display: grid;
+    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+    gap: var(--space-lg);
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border: var(--border-standard);
+}
+
+
+/* Video */
+
+.material-video {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #171717;
+    padding: 12px;
+}
+
+    .material-video video {
+        display: block;
+        width: 100%;
+        max-width: 220px;
+        height: auto;
+        aspect-ratio: 314 / 560;
+        object-fit: contain;
+    }
+
+
+/* Description */
+
+.material-description {
+    padding: 10px 0;
+}
+
+.material-category {
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    margin-bottom: 14px;
+}
+
+    .material-category span {
+        color: var(--color-secondary);
+    }
+
+.material-description h2 {
+    font-size: 2rem;
+    margin-bottom: 14px;
+}
+
+.material-description > p {
+    max-width: 650px;
+    color: var(--color-secondary);
+    line-height: 1.8;
+    margin-bottom: 25px;
+}
+
+.material-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    border-top: var(--border-standard);
+    padding-top: 16px;
+    color: var(--color-secondary);
+    font-family: var(--font-label);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+}
+
+
+/* -----------------------------------------------------
+   08.05 SUBJECT INTRODUCTIONS
+   ----------------------------------------------------- */
+
+.practice-lab-more {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: var(--space-xl);
+}
+
+.practice-lab-anchor {
+    scroll-margin-top: 100px;
+    padding: 22px;
+    border-left: 3px solid var(--color-accent);
+    background: var(--color-surface);
+}
+
+    .practice-lab-anchor > span {
+        color: var(--color-accent);
+        font-family: var(--font-label);
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .practice-lab-anchor h2 {
+        font-size: 1.3rem;
+        margin: 12px 0 8px;
+    }
+
+    .practice-lab-anchor p {
+        color: var(--color-secondary);
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+
+/* -----------------------------------------------------
+   08.06 RESPONSIVE DESIGN
+   ----------------------------------------------------- */
+
+@media (max-width: 991px) {
+
+    .practice-lab-topic-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .practice-lab-more {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+
+    .practice-lab-page {
+        padding: var(--space-md) var(--space-sm) var(--space-lg);
+    }
+
+    .practice-lab-header {
+        margin-bottom: var(--space-lg);
+    }
+
+    .practice-lab-topic-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .practice-lab-topic {
+        min-height: 0;
+        padding: 18px;
+    }
+
+    .topic-number {
+        margin-bottom: 10px;
+    }
+
+    .practice-lab-material {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 15px;
+    }
+
+    .material-video video {
+        max-width: 240px;
+    }
+
+    .material-description h2 {
+        font-size: 1.7rem;
+    }
+
+    .practice-lab-more {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .practice-lab-section-heading {
+        font-size: 0.75rem;
+    }
+}
+
 
 
 /* =====================================================
