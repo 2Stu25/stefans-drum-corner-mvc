@@ -845,6 +845,56 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: var(--space-lg);
 }
 
+/* Sheet Music Links */
+
+.sheet-music-actions {
+    margin-top: 24px;
+    max-width: 360px;
+}
+
+.sheet-music-heading {
+    font-family: var(--font-label);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    color: var(--color-secondary);
+    padding-bottom: 8px;
+    border-bottom: var(--border-standard);
+}
+
+.sheet-music-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-bottom: var(--border-standard);
+    background: transparent;
+    color: var(--color-primary);
+    font-family: var(--font-label);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--transition-standard);
+}
+
+.sheet-music-link:hover {
+    color: var(--color-accent);
+}
+
+.sheet-music-link > span:first-child {
+    color: var(--color-secondary);
+    font-size: 0.75rem;
+}
+
+.sheet-music-format {
+    margin-left: auto;
+    color: var(--color-secondary);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
 
 /* -----------------------------------------------------
    08.02 SECTION HEADINGS
@@ -945,13 +995,12 @@ h1, h2, h3, h4, h5, h6 {
 .practice-lab-material {
     display: grid;
     grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
-    gap: var(--space-lg);
-    align-items: center;
-    padding: var(--space-md);
+    gap: 0;
+    align-items: stretch;
+    padding: 0;
     background: var(--color-surface);
     border: var(--border-standard);
 }
-
 
 /* Video */
 
@@ -960,23 +1009,21 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     align-items: center;
     background: #171717;
-    padding: 12px;
+    padding: 16px;
+    min-width: 0;
 }
 
     .material-video video {
         display: block;
         width: 100%;
-        max-width: 220px;
-        height: auto;
-        aspect-ratio: 314 / 560;
+        height: 100%;
         object-fit: contain;
     }
-
 
 /* Description */
 
 .material-description {
-    padding: 10px 0;
+    padding: var(--space-md) var(--space-lg);
 }
 
 .material-category {
