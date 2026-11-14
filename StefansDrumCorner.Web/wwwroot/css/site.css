@@ -988,6 +988,50 @@ h1, h2, h3, h4, h5, h6 {
    08.04 MATERIAL COLLECTION
    ----------------------------------------------------- */
 
+
+
+/* Placeholder video */
+
+.material-video-placeholder {
+    width: 100%;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #292929;
+    color: #ffffff;
+    font-family: var(--font-label);
+    text-align: center;
+}
+
+.placeholder-number {
+    font-size: 2rem;
+    opacity: 0.4;
+}
+
+.placeholder-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+}
+
+/* Compact placeholder */
+
+.practice-lab-material:not(.is-active) .material-video-placeholder {
+    min-height: 100%;
+    height: 100%;
+    gap: 0;
+}
+
+.practice-lab-material:not(.is-active) .placeholder-number {
+    font-size: 1rem;
+}
+
+.practice-lab-material:not(.is-active) .placeholder-label {
+    display: none;
+}
+
 .practice-lab-materials {
     margin-bottom: var(--space-xl);
 }
@@ -1013,12 +1057,12 @@ h1, h2, h3, h4, h5, h6 {
     min-width: 0;
 }
 
-    .material-video video {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
+.material-video video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
 
 /* Description */
 
@@ -1066,41 +1110,187 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* -----------------------------------------------------
-   08.05 SUBJECT INTRODUCTIONS
+   08.05 VIDEO PLACEHOLDERS
    ----------------------------------------------------- */
 
-.practice-lab-more {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-    margin-top: var(--space-xl);
+.material-placeholder {
+    grid-template-columns: 150px minmax(0, 1fr);
+    min-height: 110px;
+    margin-top: 12px;
 }
 
-.practice-lab-anchor {
-    scroll-margin-top: 100px;
-    padding: 22px;
-    border-left: 3px solid var(--color-accent);
-    background: var(--color-surface);
+/* Video thumbnail frame */
+
+.material-placeholder-visual {
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    width: 100%;
+    aspect-ratio: var(--video-aspect-ratio, 4 / 3);
+    min-height: 0;
+    padding: 5px;
+    background: #202020;
+    border: 1px solid #555;
 }
 
-    .practice-lab-anchor > span {
-        color: var(--color-accent);
-        font-family: var(--font-label);
-        font-weight: 700;
-        font-size: 0.8rem;
+/* Thumbnail video */
+
+.material-thumbnail-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #171717;
+}
+
+/* Custom play button */
+
+.video-play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1.5px solid #fff;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.video-play-icon {
+    width: 0;
+    height: 0;
+    margin-left: 3px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 9px solid #fff;
+}
+
+.video-play-button:hover {
+    background: rgba(197, 40, 71, 0.85);
+    border-color: #fff;
+}
+
+/* Video number */
+
+.video-thumbnail-label {
+    position: absolute;
+    bottom: 9px;
+    left: 10px;
+    z-index: 2;
+    padding: 2px 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-family: var(--font-label);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+}
+
+/* Description */
+
+.material-placeholder .material-description {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 20px;
+}
+
+    .material-placeholder .material-description h2 {
+        margin-bottom: 5px;
     }
 
-    .practice-lab-anchor h2 {
-        font-size: 1.3rem;
-        margin: 12px 0 8px;
+    .material-placeholder .material-description p {
+        margin-bottom: 0;
     }
 
-    .practice-lab-anchor p {
-        color: var(--color-secondary);
-        font-size: 0.9rem;
-        line-height: 1.6;
-        margin: 0;
+.material-placeholder .material-meta {
+    display: none;
+}
+
+.video-play-button[hidden] {
+    display: none;
+}
+
+
+/* Expanded video article */
+
+.video-expandable.is-expanded {
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    min-height: 0;
+    align-items: start;
+}
+
+.video-expandable.is-expanded .material-placeholder-visual {
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--video-aspect-ratio, 16 / 9);
+    min-height: 0;
+    padding: 12px;
+    border: none;
+    background: #171717;
+}
+
+.video-expandable.is-expanded .material-thumbnail-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.video-expandable.is-expanded .material-description {
+    padding: var(--space-md) var(--space-lg);
+}
+
+.video-expandable.is-expanded .material-meta {
+    display: flex;
+}
+
+/* Minimize button */
+
+.video-expandable {
+    position: relative;
+}
+
+.video-minimize-button {
+    display: none;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 20;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #888;
+    border-radius: 0;
+    background: rgba(25, 25, 25, 0.9);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+    .video-minimize-button:hover {
+        background: var(--color-accent);
     }
+
+.video-expandable.is-expanded .video-minimize-button {
+    display: flex;
+}
+
+.video-expandable.is-expanded .video-minimize-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 
 /* -----------------------------------------------------
@@ -1239,6 +1429,21 @@ h1, h2, h3, h4, h5, h6 {
     /* Keep the rest of your existing mobile rules here */
 }
 
+@media (max-width: 768px) {
+
+    .material-placeholder {
+        grid-template-columns: 100px minmax(0, 1fr);
+        min-height: 100px;
+    }
+
+    .material-placeholder-visual {
+        min-height: 100px;
+    }
+
+    .material-placeholder .material-description {
+        padding: 10px 14px;
+    }
+}
 
 /* -----------------------------------------------------
    SMALL MOBILE

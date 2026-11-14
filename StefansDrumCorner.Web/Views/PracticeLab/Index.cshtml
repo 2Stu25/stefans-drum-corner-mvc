@@ -88,20 +88,18 @@
         </div>
 
 
-        <!-- VIDEO STUDY -->
-        <article class="practice-lab-material" id="exercises-studies">
+        <!-- 01 / SDJ MALIK ETUDE -->
+        <article class="practice-lab-material is-active"
+                 id="exercises-studies"
+                 data-practice-item>
 
             <div class="material-video">
 
-                <video controls preload="metadata"
-                       playsinline>
+                <video controls preload="metadata" playsinline>
                     <source src="@Url.Content("~/videos/sdjmalik-etude-web.mp4")"
                             type="video/mp4">
                     Your browser does not support HTML5 video.
                 </video>
-
-                
-
 
             </div>
 
@@ -119,6 +117,7 @@
                     An exploration of sticking, control and precision
                     through a structured musical exercise.
                 </p>
+
                 <div class="sheet-music-actions">
 
                     <div class="sheet-music-heading">
@@ -151,6 +150,111 @@
                     <span>FORMAT: VIDEO</span>
                     <span>INSTRUMENT: DRUMS</span>
                     <span>TYPE: PRACTICE PAD</span>
+                </div>
+
+            </div>
+
+        </article>
+
+
+        
+        
+        <!-- 02 / HAND TECHNIQUE -->
+        <article class="practice-lab-material material-placeholder video-expandable"
+                 id="hand-technique-study">
+
+            <button type="button"
+                    class="video-minimize-button"
+                    aria-label="Minimize video"
+                    title="Minimize video">
+                −
+            </button>
+
+            <div class="material-placeholder-visual video-preview">
+
+                <video class="material-thumbnail-video"
+                       preload="metadata"
+                       playsinline
+                       poster="@Url.Content("~/images/practice/hand-technique.png")">
+
+                    <source src="@Url.Content("~/Videos/hand-technique-test.mp4")"
+                            type="video/mp4">
+
+                    Your browser does not support HTML5 video.
+                </video>
+
+                <button type="button"
+                        class="video-play-button"
+                        aria-label="Expand and play hand technique video">
+                    <span class="video-play-icon"></span>
+                </button>
+
+                <span class="video-thumbnail-label">VIDEO 02</span>
+
+            </div>
+
+            <div class="material-description">
+
+                <div class="material-category">
+                    GRIP &amp; STICKING
+                    <span> / TECHNIQUE STUDY</span>
+                </div>
+
+                <h2>Hand Technique Study</h2>
+
+                <p>
+                    A focused demonstration of hand movement,
+                    sticking control and consistency.
+                </p>
+
+                <div class="material-meta">
+                    <span>FORMAT: VIDEO</span>
+                    <span>INSTRUMENT: DRUMS</span>
+                    <span>TYPE: TECHNIQUE</span>
+                </div>
+
+            </div>
+        </article>
+
+
+
+        <!-- 03 / RUDIMENTAL EXERCISE -->
+        <article class="practice-lab-material material-placeholder"
+                 id="rudimental-exercise">
+
+            <div class="material-placeholder-visual">
+
+                <img src="~/images/practice/rudimental-exercise.jpg"
+                     alt="Rudimental drum practice"
+                     asp-append-version="true">
+
+                <div class="video-thumbnail-overlay">
+                    <span class="video-play-icon">
+                        <i class="bi bi-play-circle"></i>
+                    </span>
+                    <span class="video-thumbnail-label">VIDEO 03</span>
+                </div>
+
+            </div>
+
+            <div class="material-description">
+
+                <div class="material-category">
+                    EXERCISES &amp; STUDIES
+                    <span> / PRACTICE SESSION</span>
+                </div>
+
+                <h2>Rudimental Exercise</h2>
+
+                <p>
+                    Working on accuracy, timing and dynamic control
+                    through a structured rudimental exercise.
+                </p>
+
+                <div class="material-meta">
+                    <span>FORMAT: VIDEO</span>
+                    <span>INSTRUMENT: DRUMS</span>
+                    <span>TYPE: RUDIMENTS</span>
                 </div>
 
             </div>
@@ -446,6 +550,104 @@
         pageInfo.textContent = 'Page 0 of 0';
         zoomLevel.textContent = '100%';
     });
+
+        
+        
+    document.querySelectorAll(".video-expandable").forEach(article => {
+
+        const video = article.querySelector("video");
+        const preview = article.querySelector(".video-preview");
+        const playButton = article.querySelector(".video-play-button");
+        const minimizeButton = article.querySelector(".video-minimize-button");
+
+        if (!video || !preview || !playButton || !minimizeButton) return;
+
+
+        // Detect original video dimensions and aspect ratio
+
+        video.addEventListener("loadedmetadata", () => {
+
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+
+            if (width && height) {
+                preview.style.setProperty(
+                    "--video-aspect-ratio",
+                    `${width} / ${height}`
+                );
+            }
+
+        });
+
+
+        // Expand article and start playback
+
+        function expandVideo() {
+
+            article.classList.add("is-expanded");
+
+            video.controls = true;
+            playButton.hidden = true;
+
+            video.play().catch(error => {
+                console.warn("Video playback could not start:", error);
+                playButton.hidden = false;
+            });
+
+        }
+
+
+        // Pause video and restore compact layout
+
+        function minimizeVideo() {
+
+            video.pause();
+            video.currentTime = 0;
+            video.controls = false;
+
+            article.classList.remove("is-expanded");
+            playButton.hidden = false;
+
+        }
+
+
+        // Clicking the article expands it
+
+        article.addEventListener("click", event => {
+
+            if (article.classList.contains("is-expanded")) return;
+
+            if (event.target.closest("button")) return;
+
+            expandVideo();
+
+        });
+
+
+        // Play button
+
+        playButton.addEventListener("click", event => {
+
+            event.stopPropagation();
+            expandVideo();
+
+        });
+
+
+        // Minimize button
+
+        minimizeButton.addEventListener("click", event => {
+
+            event.stopPropagation();
+            minimizeVideo();
+
+        });
+
+    });
+
+
+
+    
 </script>
 
 
