@@ -1,0 +1,66 @@
+﻿@model StefansDrumCorner.Web.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Admin Login";
+}
+
+<section class="account-login">
+
+    <div class="account-login-header">
+        <span class="account-label">PRIVATE ACCESS / 01</span>
+        <h1>ADMIN LOGIN</h1>
+        <p>Sign in to manage Stefan's Drum Corner.</p>
+    </div>
+
+    <form asp-controller="Account"
+          asp-action="Login"
+          method="post">
+
+        <input type="hidden" asp-for="ReturnUrl" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="validation-summary"></div>
+
+        <div class="form-group">
+            <label asp-for="Email">EMAIL ADDRESS</label>
+            <input asp-for="Email"
+                   type="email"
+                   autocomplete="username"
+                   placeholder="Your email address" />
+            <span asp-validation-for="Email"
+                  class="field-validation"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password">PASSWORD</label>
+            <input asp-for="Password"
+                   autocomplete="current-password"
+                   placeholder="Your password" />
+            <span asp-validation-for="Password"
+                  class="field-validation"></span>
+        </div>
+
+        <div class="login-options">
+            <label class="remember-me">
+                <input asp-for="RememberMe" />
+                <span>Remember me</span>
+            </label>
+        </div>
+
+        <button type="submit" class="account-login-button">
+            SIGN IN
+        </button>
+
+    </form>
+
+    <div class="account-login-footer">
+        <a asp-controller="Home" asp-action="Index">
+            ← BACK TO WEBSITE
+        </a>
+    </div>
+
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

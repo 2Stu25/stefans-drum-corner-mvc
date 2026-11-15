@@ -1,0 +1,52 @@
+﻿@{
+    ViewData["Title"] = "Content Manager";
+}
+
+<section class="admin-dashboard">
+
+    <header class="admin-dashboard-header">
+
+        <span class="account-label">PRIVATE ACCESS / ADMINISTRATION</span>
+
+        <div class="admin-dashboard-title-row">
+
+            <h1>CONTENT MANAGER</h1>
+
+            <form asp-controller="Account"
+                  asp-action="Logout"
+                  method="post"
+                  class="admin-logout-form">
+
+                <button type="submit" class="admin-logout-button">
+                    SIGN OUT
+                </button>
+
+            </form>
+
+        </div>
+
+        <p>Manage the content and media on Stefan's Drum Corner.</p>
+
+    </header>
+
+    
+
+    <div class="admin-dashboard-section">
+
+        <h2><span>01 /</span> VIDEOS</h2>
+        <p>Manage drumming demonstrations and performances.</p>
+
+    </div>
+
+    <div class="admin-dashboard-section">
+
+        <h2><span>02 /</span> PRACTICE LAB</h2>
+        <p>Manage exercises, technique studies and learning materials.</p>
+
+    </div>
+
+    <div class="admin-dashboard-coming">
+        ADDITIONAL SECTIONS WILL BE AVAILABLE LATER
+    </div>
+
+</section>
