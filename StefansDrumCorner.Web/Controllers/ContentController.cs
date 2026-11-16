@@ -27,7 +27,7 @@ namespace StefansDrumCorner.Web.Controllers
             return View(contentItems);
         }
 
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? categoryId)
         {
             ViewBag.Categories = await _context.ContentCategories
                 .Where(c => c.IsActive)
@@ -35,6 +35,19 @@ namespace StefansDrumCorner.Web.Controllers
                 .ThenBy(c => c.ParentCategoryId)
                 .ThenBy(c => c.DisplayOrder)
                 .ToListAsync();
+
+            if (categoryId.HasValue)
+            {
+                bool categoryExists = await _context.ContentCategories
+                    .AnyAsync(c => c.Id == categoryId && c.IsActive);
+
+                if (!categoryExists)
+                {
+                    return NotFound();
+                }
+            }
+
+            ViewBag.SelectedCategoryId = categoryId;
 
             return View();
         }

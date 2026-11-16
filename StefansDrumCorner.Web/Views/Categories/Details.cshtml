@@ -1,0 +1,104 @@
+﻿
+@using StefansDrumCorner.Web.Models.Content
+@model ContentCategory
+
+@{
+    ViewData["Title"] = Model.Name;
+    var contentItems = ViewBag.ContentItems as List<ContentItem>
+        ?? new List<ContentItem>();
+}
+
+<section class="admin-dashboard">
+
+    <header class="admin-dashboard-header">
+
+        <span class="account-label">PRIVATE ACCESS / CATEGORY MANAGEMENT</span>
+
+        <div class="admin-dashboard-title-row">
+
+            <h1>@Model.Name.ToUpperInvariant()</h1>
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="content-manager-back">
+                BACK TO CONTENT MANAGER
+            </a>
+
+        </div>
+
+        <p>@Model.Subtitle</p>
+
+    </header>
+
+    @if (Model.SubCategories.Any())
+    {
+        <div class="admin-dashboard-section">
+
+            <h2>SUBCATEGORIES</h2>
+
+            @foreach (var subCategory in Model.SubCategories.OrderBy(s => s.DisplayOrder))
+            {
+                <div class="admin-dashboard-subcategory">
+                    @subCategory.Name
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="admin-dashboard-section">
+
+            <div class="admin-dashboard-title-row">
+                <h2>CONTENT</h2>
+
+                <a asp-controller="Content"
+                   asp-action="Create"
+                   asp-route-categoryId="@Model.Id"
+                   class="content-manager-create">
+                    + ADD CONTENT
+                </a>
+            </div>
+
+            @if (contentItems.Any())
+            {
+                <table class="content-manager-table">
+                    <thead>
+                        <tr>
+                            <th>TITLE</th>
+                            <th>TYPE</th>
+                            <th>STATUS</th>
+                            <th>DISPLAY ORDER</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in contentItems)
+                        {
+                            <tr>
+                                <td>@item.Title</td>
+                                <td>@item.ContentType</td>
+                                <td>@item.Status</td>
+                                <td>@item.DisplayOrder</td>
+                                <td>
+                                    <a asp-controller="Content"
+                                       asp-action="Edit"
+                                       asp-route-id="@item.Id">
+                                        EDIT
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No content has been added to this category yet.</p>
+            }
+
+        </div>
+    }
+
+</section>

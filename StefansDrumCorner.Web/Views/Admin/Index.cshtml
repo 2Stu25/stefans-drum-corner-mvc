@@ -1,4 +1,6 @@
-﻿@{
+﻿@model List<StefansDrumCorner.Web.Models.Content.ContentCategory>
+
+@{
     ViewData["Title"] = "Content Manager";
 }
 
@@ -27,26 +29,47 @@
 
         <p>Manage the content and media on Stefan's Drum Corner.</p>
 
+        <a asp-controller="Categories"
+           asp-action="Create"
+           class="content-manager-create">
+            + ADD CATEGORY
+        </a>
+
     </header>
 
-    
+    @foreach (var category in Model)
+    {
+        <div class="admin-dashboard-section">
 
-    <div class="admin-dashboard-section">
+            <h2>
+                <a asp-controller="Categories"
+                   asp-action="Details"
+                   asp-route-id="@category.Id"
+                   class="admin-category-link">
 
-        <h2><span>01 /</span> VIDEOS</h2>
-        <p>Manage drumming demonstrations and performances.</p>
+                    <span>@category.DisplayOrder.ToString("00") /</span>
+                    @category.Name.ToUpperInvariant()
 
-    </div>
+                </a>
+            </h2>
 
-    <div class="admin-dashboard-section">
+            <p>@category.Subtitle</p>
 
-        <h2><span>02 /</span> PRACTICE LAB</h2>
-        <p>Manage exercises, technique studies and learning materials.</p>
+            @if (category.SubCategories.Any())
+            {
+                <div class="admin-dashboard-subcategories">
 
-    </div>
+                    @foreach (var subCategory in category.SubCategories.OrderBy(s => s.DisplayOrder))
+                    {
+                        <div class="admin-dashboard-subcategory">
+                            @subCategory.Name
+                        </div>
+                    }
 
-    <div class="admin-dashboard-coming">
-        ADDITIONAL SECTIONS WILL BE AVAILABLE LATER
-    </div>
+                </div>
+            }
+
+        </div>
+    }
 
 </section>

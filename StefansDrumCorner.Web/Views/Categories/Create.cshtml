@@ -1,0 +1,132 @@
+﻿
+@using StefansDrumCorner.Web.Models.Content
+@model ContentCategory
+
+@{
+    ViewData["Title"] = "Add Category";
+}
+
+<section class="admin-dashboard">
+
+    <header class="admin-dashboard-header">
+
+        <span class="account-label">PRIVATE ACCESS / CATEGORY MANAGEMENT</span>
+
+        <div class="admin-dashboard-title-row">
+
+            <h1>ADD CATEGORY</h1>
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="content-manager-back">
+                BACK TO CONTENT MANAGER
+            </a>
+
+        </div>
+
+        <p>Create a new category or subcategory for Stefan's Drum Corner.</p>
+
+    </header>
+
+    <form asp-controller="Categories"
+          asp-action="Create"
+          method="post"
+          class="content-manager-form">
+
+        <div class="form-group">
+
+            <label for="Name">CATEGORY NAME</label>
+
+            <input type="text"
+                   id="Name"
+                   name="Name"
+                   value="@Model?.Name"
+                   required />
+
+            <span asp-validation-for="Name"></span>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="Subtitle">SUBTITLE</label>
+
+            <input type="text"
+                   id="Subtitle"
+                   name="Subtitle"
+                   value="@Model?.Subtitle" />
+
+            <span asp-validation-for="Subtitle"></span>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="ParentCategoryId">PARENT CATEGORY</label>
+
+            <select id="ParentCategoryId" name="ParentCategoryId">
+
+                <option value="">MAIN CATEGORY</option>
+
+                @foreach (var parent in (List<ContentCategory>)ViewBag.ParentCategories)
+                {
+                    <option value="@parent.Id"
+                            selected="@(Model?.ParentCategoryId == parent.Id)">
+                        @parent.Name
+                    </option>
+                }
+
+            </select>
+
+            <span asp-validation-for="ParentCategoryId"></span>
+
+            <p class="form-help">
+                Leave this empty to create a main category.
+            </p>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="DisplayOrder">DISPLAY ORDER</label>
+
+            <input type="number"
+                   id="DisplayOrder"
+                   name="DisplayOrder"
+                   value="@(Model?.DisplayOrder ?? 1)"
+                   min="1"
+                   required />
+
+            <span asp-validation-for="DisplayOrder"></span>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                <input type="checkbox"
+                       name="IsActive"
+                       value="true"
+                       checked="@(Model?.IsActive ?? true)" />
+                ACTIVE CATEGORY
+            </label>
+
+        </div>
+
+        <div class="content-manager-form-actions">
+
+            <button type="submit" class="content-manager-create">
+                SAVE CATEGORY
+            </button>
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="content-manager-back">
+                CANCEL
+            </a>
+
+        </div>
+
+    </form>
+
+</section>

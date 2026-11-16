@@ -3,6 +3,9 @@
 
 @{
     ViewData["Title"] = "Add Content";
+
+    int? selectedCategoryId =
+        Model?.CategoryId ?? (int?)ViewBag.SelectedCategoryId;
 }
 
 <section class="content-manager">
@@ -54,7 +57,7 @@
                 @foreach (var category in (List<ContentCategory>)ViewBag.Categories)
                 {
                     <option value="@category.Id"
-                            selected="@(Model?.CategoryId == category.Id)">
+                            selected="@(selectedCategoryId == category.Id)">
                         @category.Name
                     </option>
                 }
