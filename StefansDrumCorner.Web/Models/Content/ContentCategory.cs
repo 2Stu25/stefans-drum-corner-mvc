@@ -1,5 +1,4 @@
-﻿
-namespace StefansDrumCorner.Web.Models.Content
+﻿namespace StefansDrumCorner.Web.Models.Content
 {
     public class ContentCategory
     {
@@ -7,9 +6,16 @@ namespace StefansDrumCorner.Web.Models.Content
 
         public string Name { get; set; } = string.Empty;
 
+        public string Subtitle { get; set; } = string.Empty;
+
         public string Slug { get; set; } = string.Empty;
 
-        public string Section { get; set; } = string.Empty;
+        public int? ParentCategoryId { get; set; }
+
+        public ContentCategory? ParentCategory { get; set; }
+
+        public ICollection<ContentCategory> SubCategories { get; set; }
+            = new List<ContentCategory>();
 
         public int DisplayOrder { get; set; }
 

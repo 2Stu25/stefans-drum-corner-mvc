@@ -1,5 +1,92 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<StefansDrumCorner.Web.Models.Content.ContentItem>
+
 @{
+    ViewData["Title"] = "Content Library";
 }
+
+<section class="content-manager">
+
+    <header class="content-manager-header">
+
+        <span class="account-label">PRIVATE ACCESS / CONTENT MANAGEMENT</span>
+
+        <div class="content-manager-title-row">
+
+            <h1>CONTENT LIBRARY</h1>
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="content-manager-back">
+                BACK TO DASHBOARD
+            </a>
+
+        </div>
+
+        <p>Manage videos, practice material and other content.</p>
+
+    </header>
+
+    <div class="content-manager-toolbar">
+
+        <span>CONTENT ITEMS</span>
+
+        <a asp-controller="Content"
+           asp-action="Create"
+           class="content-manager-create">
+            + ADD CONTENT
+        </a>
+
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="content-manager-empty">
+
+            <h2>NO CONTENT YET</h2>
+
+            <p>Your content library is currently empty.</p>
+
+        </div>
+    }
+    else
+    {
+        <div class="content-manager-list">
+
+            @foreach (var item in Model)
+            {
+                <article class="content-manager-item">
+
+                    <div class="content-manager-item-info">
+
+                        <h2>@item.Title</h2>
+
+                        <p>@item.Description</p>
+
+                        <span>@item.ContentType</span>
+
+                        <span>@item.Status</span>
+
+                        @if (item.Category != null)
+                        {
+                            <span>@item.Category.Name</span>
+                        }
+
+                    </div>
+
+                    <div class="content-manager-item-actions">
+
+                        <a asp-controller="Content"
+                           asp-action="Edit"
+                           asp-route-id="@item.Id">
+                            EDIT
+                        </a>
+
+                    </div>
+
+                </article>
+            }
+
+        </div>
+    }
+
+</section>

@@ -1,0 +1,128 @@
+﻿@using StefansDrumCorner.Web.Models.Content
+@model ContentItem
+
+@{
+    ViewData["Title"] = "Add Content";
+}
+
+<section class="content-manager">
+
+    <header class="content-manager-header">
+
+        <span class="account-label">PRIVATE ACCESS / CONTENT MANAGEMENT</span>
+
+        <div class="content-manager-title-row">
+
+            <h1>ADD NEW CONTENT</h1>
+
+            <a asp-controller="Content"
+               asp-action="Index"
+               class="content-manager-back">
+                BACK TO CONTENT LIBRARY
+            </a>
+
+        </div>
+
+        <p>Create a new item for Stefan's Drum Corner.</p>
+
+    </header>
+
+    <form asp-controller="Content"
+          asp-action="Create"
+          method="post"
+          class="content-manager-form">
+
+        <div class="form-group">
+            <label for="Title">TITLE</label>
+            <input type="text" id="Title" name="Title" value="@Model?.Title" required />
+            <span asp-validation-for="Title"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="Description">DESCRIPTION</label>
+            <textarea id="Description" name="Description" rows="5">@Model?.Description</textarea>
+            <span asp-validation-for="Description"></span>
+        </div>
+
+        
+
+        <div class="form-group">
+            <label for="CategoryId">CATEGORY</label>
+            <select id="CategoryId" name="CategoryId">
+                <option value="">SELECT CATEGORY</option>
+
+                @foreach (var category in (List<ContentCategory>)ViewBag.Categories)
+                {
+                    <option value="@category.Id"
+                            selected="@(Model?.CategoryId == category.Id)">
+                        @category.Name
+                    </option>
+                }
+
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ContentType">CONTENT TYPE</label>
+            <select id="ContentType" name="ContentType">
+                @foreach (ContentType type in Enum.GetValues(typeof(ContentType)))
+                {
+                    <option value="@type"
+                            selected="@(Model?.ContentType == type)">
+                        @type
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="ContentType"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="Status">STATUS</label>
+            <select id="Status" name="Status">
+                @foreach (ContentStatus status in Enum.GetValues(typeof(ContentStatus)))
+                {
+                    <option value="@status"
+                            selected="@(Model?.Status == status)">
+                        @status
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="Status"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="DisplayOrder">DISPLAY ORDER</label>
+            <input type="number"
+                   id="DisplayOrder"
+                   name="DisplayOrder"
+                   value="@(Model?.DisplayOrder ?? 0)" />
+            <span asp-validation-for="DisplayOrder"></span>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox"
+                       name="IsFeatured"
+                       value="true"
+                       checked="@(Model?.IsFeatured == true)" />
+                FEATURED CONTENT
+            </label>
+        </div>
+
+        <div class="content-manager-form-actions">
+
+            <button type="submit" class="content-manager-create">
+                SAVE CONTENT
+            </button>
+
+            <a asp-controller="Content"
+               asp-action="Index"
+               class="content-manager-back">
+                CANCEL
+            </a>
+
+        </div>
+
+    </form>
+
+</section>

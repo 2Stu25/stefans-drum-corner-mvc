@@ -33,6 +33,13 @@ namespace StefansDrumCorner.Web.Data
                 .HasForeignKey(c => c.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // ContentCategory -> ParentCategory
+            builder.Entity<ContentCategory>()
+                .HasOne(c => c.ParentCategory)
+                .WithMany(c => c.SubCategories)
+                .HasForeignKey(c => c.ParentCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // ContentMedia -> ContentItem
             builder.Entity<ContentMedia>()
                 .HasOne(cm => cm.ContentItem)
