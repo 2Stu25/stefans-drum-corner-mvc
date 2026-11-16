@@ -11,6 +11,7 @@
     <Folder Include="wwwroot\documents\" />
     <Folder Include="wwwroot\images\practice\" />
     <Folder Include="wwwroot\lib\pdfjs\build\" />
+    <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\Videos\" />
   </ItemGroup>
 

@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>@ViewData["Title"] - StefansDrumCorner.Web</title>
+
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
@@ -131,8 +133,12 @@
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - StefansDrumCorner.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        <div class="container footer-copyright">
+            <span>&copy; 2026 -</span>
+
+            <img src="~/images/stefans-nameplate.png"
+                 alt="Stefan Eksteen"
+                 class="footer-signature" />
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

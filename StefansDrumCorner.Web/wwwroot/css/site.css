@@ -28,6 +28,14 @@
    LIGHT THEME (Default)
 ----------------------------------------------------- */
 
+@font-face {
+    font-family: 'Wittenberger Fraktur';
+    src: url('/fonts/WittenbergerFrakturStdBold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     color-scheme: light;
     /* Colours */
@@ -45,6 +53,7 @@
     --font-heading: 'Oswald', sans-serif;
     --font-body: 'Inter', sans-serif;
     --font-label: 'Oswald', sans-serif;
+    --font-signature: 'Wittenberger Fraktur', serif;
     --font-size-small: 0.85rem;
     --font-size-normal: 1rem;
     --font-size-large: 1.15rem;
@@ -324,6 +333,17 @@ h1, h2, h3, h4, h5, h6 {
    05. FOOTER
    Footer styling
    ===================================================== */
+.footer-copyright {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-signature {
+    display: block;
+    width: 140px;
+    height: auto;
+}
 
 /* Reserved for footer styling */
 
