@@ -43,7 +43,7 @@ namespace StefansDrumCorner.Web.Data
             // ContentMedia -> ContentItem
             builder.Entity<ContentMedia>()
                 .HasOne(cm => cm.ContentItem)
-                .WithMany()
+                .WithMany(c => c.ContentMedia)
                 .HasForeignKey(cm => cm.ContentItemId)
                 .OnDelete(DeleteBehavior.Cascade);
 

@@ -31,9 +31,14 @@
     </header>
 
     <form asp-controller="Content"
-          asp-action="Create"
-          method="post"
-          class="content-manager-form">
+      asp-action="Create"
+      method="post"
+      enctype="multipart/form-data"
+      class="content-manager-form">
+
+      <div asp-validation-summary="ModelOnly"
+             class="text-danger">
+      </div>
 
         <div class="form-group">
             <label for="Title">TITLE</label>
@@ -111,6 +116,62 @@
                 FEATURED CONTENT
             </label>
         </div>
+
+        <div class="content-manager-media-section">
+
+            <h2>ATTACH MEDIA</h2>
+
+            <p>Upload the files associated with this content item.</p>
+
+            <div class="form-group">
+                <label for="MainVideo">MAIN VIDEO</label>
+                <input type="file"
+                       id="MainVideo"
+                       name="mainVideo"
+                       accept=".mp4,.webm,.mov" />
+                <small>MP4, WebM or MOV. Maximum 250 MB.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="Thumbnail">THUMBNAIL</label>
+                <input type="file"
+                       id="Thumbnail"
+                       name="thumbnail"
+                       accept=".jpg,.jpeg,.png,.webp" />
+                <small>JPG, PNG or WebP. Maximum 15 MB.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="Documents">DOCUMENTS</label>
+                <input type="file"
+                       id="Documents"
+                       name="documents"
+                       accept=".pdf"
+                       multiple />
+                <small>PDF files. You can select multiple documents.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="GalleryImages">GALLERY IMAGES</label>
+                <input type="file"
+                       id="GalleryImages"
+                       name="galleryImages"
+                       accept=".jpg,.jpeg,.png,.webp"
+                       multiple />
+                <small>Select multiple images if needed.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="AudioFiles">AUDIO FILES</label>
+                <input type="file"
+                       id="AudioFiles"
+                       name="audioFiles"
+                       accept=".mp3,.wav"
+                       multiple />
+                <small>MP3 or WAV files.</small>
+            </div>
+
+</div>
 
         <div class="content-manager-form-actions">
 
