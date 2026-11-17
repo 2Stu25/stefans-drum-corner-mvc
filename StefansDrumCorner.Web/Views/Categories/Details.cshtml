@@ -30,6 +30,22 @@
 
     </header>
 
+    <form asp-controller="Categories"
+          asp-action="Archive"
+          asp-route-id="@Model.Id"
+          method="post"
+          class="content-manager-form">
+
+        <button type="submit"
+                class="content-manager-back"
+                onclick="return confirm('Are you sure you want to archive this category? Its subcategories will also be archived.')">
+
+            ARCHIVE CATEGORY
+
+        </button>
+
+    </form>
+
     @if (Model.SubCategories.Any())
     {
         <div class="admin-dashboard-section">
@@ -38,8 +54,22 @@
 
             @foreach (var subCategory in Model.SubCategories.OrderBy(s => s.DisplayOrder))
             {
-                <div class="admin-dashboard-subcategory">
-                    @subCategory.Name
+                <div class="admin-dashboard-subcategory admin-subcategory-row">
+
+                    <span>@(subCategory.DisplayOrder). @subCategory.Name</span>
+
+                    <form asp-controller="Categories"
+                          asp-action="Archive"
+                          asp-route-id="@subCategory.Id"
+                          method="post"
+                          onsubmit="return confirm('Archive this subcategory?');">
+
+                        <button type="submit" class="admin-subcategory-archive">
+                            ARCHIVE
+                        </button>
+
+                    </form>
+
                 </div>
             }
 

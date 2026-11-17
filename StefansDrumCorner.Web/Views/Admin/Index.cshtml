@@ -35,38 +35,93 @@
             + ADD CATEGORY
         </a>
 
+        <a asp-controller="Categories"
+           asp-action="Archived"
+           class="content-manager-back">
+            VIEW ARCHIVED CATEGORIES →
+        </a>
+
     </header>
 
     @foreach (var category in Model)
     {
         <div class="admin-dashboard-section">
 
-            <h2>
-                <a asp-controller="Categories"
-                   asp-action="Details"
-                   asp-route-id="@category.Id"
-                   class="admin-category-link">
-
-                    <span>@category.DisplayOrder.ToString("00") /</span>
-                    @category.Name.ToUpperInvariant()
-
-                </a>
-            </h2>
-
-            <p>@category.Subtitle</p>
-
             @if (category.SubCategories.Any())
             {
-                <div class="admin-dashboard-subcategories">
+                <details class="admin-category-group">
 
-                    @foreach (var subCategory in category.SubCategories.OrderBy(s => s.DisplayOrder))
-                    {
-                        <div class="admin-dashboard-subcategory">
-                            @subCategory.Name
+                    <summary class="admin-category-summary">
+
+                        <span class="admin-category-number">
+                            @category.DisplayOrder.ToString("00") /
+                        </span>
+
+                        @category.Name.ToUpperInvariant()
+
+                    </summary>
+
+                    <p>@category.Subtitle</p>
+
+                    <div class="admin-dashboard-subcategories">
+
+                        <div class="admin-subcategory-label">
+                            SUBCATEGORIES
                         </div>
-                    }
+
+                        @foreach (var subCategory in category.SubCategories.OrderBy(s => s.DisplayOrder))
+                        {
+                            <div class="admin-dashboard-subcategory admin-subcategory-row">
+
+                                <span>@subCategory.Name</span>
+
+                                <a asp-controller="Content"
+                                   asp-action="Create"
+                                   asp-route-categoryId="@subCategory.Id"
+                                   class="admin-add-content-link">
+                                    + ADD CONTENT →
+                                </a>
+
+                            </div>
+                        }
+
+                        <a asp-controller="Categories"
+                           asp-action="Create"
+                           asp-route-parentId="@category.Id"
+                           class="admin-add-subcategory-link">
+                            + ADD SUBCATEGORY →
+                        </a>
+
+                    </div>
+
+                </details>
+            }
+            else
+            {
+                <div class="admin-category-heading-row">
+
+                    <h2>
+                        <a asp-controller="Content"
+                           asp-action="Create"
+                           asp-route-categoryId="@category.Id"
+                           class="admin-category-link">
+
+                            <span>@category.DisplayOrder.ToString("00") /</span>
+                            @category.Name.ToUpperInvariant()
+
+                        </a>
+                    </h2>
+
+                    <a asp-controller="Content"
+                       asp-action="Create"
+                       asp-route-categoryId="@category.Id"
+                       class="admin-add-content-link">
+                        + ADD CONTENT →
+                    </a>
 
                 </div>
+
+                <p>@category.Subtitle</p>
             }
 
         </div>

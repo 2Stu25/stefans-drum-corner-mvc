@@ -1949,6 +1949,129 @@ body.modal-open {
         color: var(--color-accent);
     }
 
+/* =========================================
+   ADMIN CATEGORY DASHBOARD
+   ========================================= */
+
+.admin-category-heading-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+    .admin-category-heading-row h2 {
+        margin: 0 0 8px;
+    }
+
+.admin-category-summary {
+    cursor: pointer;
+    list-style: none;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+    .admin-category-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .admin-category-summary::after {
+        content: "+";
+        margin-left: 12px;
+        color: var(--color-secondary);
+        font-family: var(--font-body);
+        font-size: 18px;
+    }
+
+.admin-category-group[open] .admin-category-summary::after {
+    content: "−";
+}
+
+.admin-category-number {
+    color: var(--color-accent);
+}
+
+.admin-category-group > p {
+    margin: 8px 0 16px;
+    color: var(--color-secondary);
+    font-size: 14px;
+}
+
+.admin-subcategory-label {
+    margin-bottom: 10px;
+    color: #2877a8;
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+}
+
+.admin-dashboard-subcategories {
+    margin-top: 14px;
+    max-width: 600px;
+}
+
+.admin-subcategory-row {
+    display: grid;
+    grid-template-columns: 180px 170px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+    .admin-subcategory-row > span {
+        color: var(--color-primary);
+        font-size: 14px;
+    }
+
+.admin-add-content-link,
+.admin-add-subcategory-link {
+    color: #39804a;
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .admin-add-content-link:hover,
+    .admin-add-subcategory-link:hover {
+        color: var(--color-accent);
+    }
+
+.admin-add-subcategory-link {
+    display: inline-block;
+    margin-top: 14px;
+}
+
+@media (max-width: 600px) {
+    .admin-category-heading-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .admin-subcategory-row {
+        grid-template-columns: minmax(130px, 180px) auto;
+        column-gap: 12px;
+    }
+}
+
+.footer-admin-link {
+    margin-left: 18px;
+    color: var(--color-secondary);
+    font-family: var(--font-label);
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+    .footer-admin-link:hover {
+        color: var(--color-accent);
+    }
+
 
 
 

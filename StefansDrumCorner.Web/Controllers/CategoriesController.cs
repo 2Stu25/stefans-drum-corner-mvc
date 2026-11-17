@@ -25,11 +25,12 @@ namespace StefansDrumCorner.Web.Controllers
             return View();
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("Name,Subtitle,ParentCategoryId,DisplayOrder,IsActive")]
-            ContentCategory category)
+            [Bind("Name,Subtitle,ParentCategoryId,IsActive")]
+    ContentCategory category)
         {
             if (string.IsNullOrWhiteSpace(category.Name))
             {
@@ -40,11 +41,6 @@ namespace StefansDrumCorner.Web.Controllers
                 string.IsNullOrWhiteSpace(category.Subtitle))
             {
                 ModelState.AddModelError("Subtitle", "A subtitle is required for main categories.");
-            }
-
-            if (category.DisplayOrder < 1)
-            {
-                ModelState.AddModelError("DisplayOrder", "Display order must be at least 1.");
             }
 
             if (category.ParentCategoryId.HasValue)
@@ -66,9 +62,18 @@ namespace StefansDrumCorner.Web.Controllers
             if (!ModelState.IsValid)
             {
                 await LoadParentCategories();
-
                 return View(category);
             }
+
+            // Assign the next display order within this category level.
+            int highestDisplayOrder = await _context.ContentCategories
+                .Where(c => c.ParentCategoryId == category.ParentCategoryId && c.IsActive)
+                .Select(c => (int?)c.DisplayOrder)
+                .MaxAsync() ?? 0;
+
+            category.DisplayOrder = highestDisplayOrder + 1;
+
+           
 
             category.Name = category.Name.Trim();
             category.Subtitle = category.Subtitle?.Trim() ?? string.Empty;
@@ -90,6 +95,7 @@ namespace StefansDrumCorner.Web.Controllers
             return RedirectToAction("Index", "Admin");
         }
 
+
         public async Task<IActionResult> Details(int id)
         {
             var category = await _context.ContentCategories
@@ -110,6 +116,139 @@ namespace StefansDrumCorner.Web.Controllers
             ViewBag.ContentItems = contentItems;
 
             return View(category);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var category = await _context.ContentCategories
+                .Include(c => c.SubCategories)
+                .FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            // Archive the selected category.
+            category.IsActive = false;
+
+            // If this is a main category, archive its active subcategories too.
+            if (category.ParentCategoryId == null)
+            {
+                foreach (var subCategory in category.SubCategories)
+                {
+                    subCategory.IsActive = false;
+                }
+            }
+
+            // Close the numbering gap among the remaining active categories.
+            await RenumberActiveCategories(category.ParentCategoryId);
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index", "Admin");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Restore(int id, int? position)
+        {
+            var category = await _context.ContentCategories
+                .Include(c => c.SubCategories)
+                .FirstOrDefaultAsync(c => c.Id == id && !c.IsActive);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            // A subcategory can only be restored if its parent is active.
+            if (category.ParentCategoryId.HasValue)
+            {
+                bool parentIsActive = await _context.ContentCategories
+                    .AnyAsync(c =>
+                        c.Id == category.ParentCategoryId &&
+                        c.IsActive);
+
+                if (!parentIsActive)
+                {
+                    return BadRequest("The parent category must be restored first.");
+                }
+            }
+
+            // Get the currently active categories at this level.
+            var siblings = await _context.ContentCategories
+                .Where(c =>
+                    c.ParentCategoryId == category.ParentCategoryId &&
+                    c.IsActive)
+                .OrderBy(c => c.DisplayOrder)
+                .ThenBy(c => c.Id)
+                .ToListAsync();
+
+            // Default to the end if no position is supplied.
+            int insertPosition = position.HasValue
+                ? Math.Clamp(position.Value, 1, siblings.Count + 1)
+                : siblings.Count + 1;
+
+            // Insert the restored category at the selected position.
+            siblings.Insert(insertPosition - 1, category);
+
+            category.IsActive = true;
+
+            // Renumber all active categories at this level.
+            for (int i = 0; i < siblings.Count; i++)
+            {
+                siblings[i].DisplayOrder = i + 1;
+            }
+
+            // Restore subcategories if this is a main category.
+            if (category.ParentCategoryId == null)
+            {
+                var subCategories = category.SubCategories
+                    .OrderBy(s => s.DisplayOrder)
+                    .ThenBy(s => s.Id)
+                    .ToList();
+
+                for (int i = 0; i < subCategories.Count; i++)
+                {
+                    subCategories[i].IsActive = true;
+                    subCategories[i].DisplayOrder = i + 1;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index", "Admin");
+        }
+
+        private async Task RenumberActiveCategories(int? parentCategoryId)
+        {
+            var categories = await _context.ContentCategories
+                .Where(c => c.ParentCategoryId == parentCategoryId && c.IsActive)
+                .OrderBy(c => c.DisplayOrder)
+                .ThenBy(c => c.Id)
+                .ToListAsync();
+
+            for (int i = 0; i < categories.Count; i++)
+            {
+                categories[i].DisplayOrder = i + 1;
+            }
+        }
+
+        public async Task<IActionResult> Archived()
+        {
+            var archivedCategories = await _context.ContentCategories
+                .Where(c => !c.IsActive &&
+                            (c.ParentCategoryId == null || c.ParentCategory!.IsActive))
+                .Include(c => c.ParentCategory)
+                .Include(c => c.SubCategories.Where(s => !s.IsActive))
+                .OrderBy(c => c.ParentCategoryId)
+                .ThenBy(c => c.DisplayOrder)
+                .ToListAsync();
+
+            return View(archivedCategories);
         }
 
         private async Task LoadParentCategories()

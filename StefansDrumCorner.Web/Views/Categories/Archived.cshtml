@@ -1,0 +1,95 @@
+﻿@model List<StefansDrumCorner.Web.Models.Content.ContentCategory>
+
+@{
+    ViewData["Title"] = "Archived Categories";
+}
+
+<section class="admin-dashboard">
+
+    <header class="admin-dashboard-header">
+
+        <span class="account-label">PRIVATE ACCESS / CATEGORY MANAGEMENT</span>
+
+        <div class="admin-dashboard-title-row">
+
+            <h1>ARCHIVED CATEGORIES</h1>
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="content-manager-back">
+                BACK TO CONTENT MANAGER
+            </a>
+
+        </div>
+
+        <p>Restore categories or change their position in the active category list.</p>
+
+    </header>
+
+    @if (!Model.Any())
+    {
+        <p>No archived categories.</p>
+    }
+    else
+    {
+        @foreach (var category in Model)
+        {
+            <div class="admin-dashboard-section">
+
+                <h2>
+                    @category.Name.ToUpperInvariant()
+                </h2>
+
+                @if (category.ParentCategoryId.HasValue)
+                {
+                    <p>SUBCATEGORY OF: @category.ParentCategory?.Name</p>
+                }
+                else
+                {
+                    <p>MAIN CATEGORY</p>
+
+                    @if (category.SubCategories.Any())
+                    {
+                        <p>
+                            @category.SubCategories.Count archived subcategories
+                            will also be restored.
+                        </p>
+                    }
+                }
+
+                <form asp-controller="Categories"
+                      asp-action="Restore"
+                      method="post"
+                      class="content-manager-form">
+
+                    <input type="hidden" name="id" value="@category.Id" />
+
+                    <div class="form-group">
+
+                        <label for="position-@category.Id">
+                            INSERT AT POSITION
+                        </label>
+
+                        <input type="number"
+                               id="position-@category.Id"
+                               name="position"
+                               min="1"
+                               placeholder="Leave empty to add at the end" />
+
+                        <p class="form-help">
+                            Position is relative to this category level.
+                        </p>
+
+                    </div>
+
+                    <button type="submit" class="content-manager-create">
+                        RESTORE CATEGORY
+                    </button>
+
+                </form>
+
+            </div>
+        }
+    }
+
+</section>
