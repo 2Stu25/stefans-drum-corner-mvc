@@ -31,147 +31,178 @@
     </header>
 
     <form asp-controller="Content"
-      asp-action="Create"
-      method="post"
-      enctype="multipart/form-data"
-      class="content-manager-form">
+          asp-action="Create"
+          method="post"
+          enctype="multipart/form-data"
+          class="content-manager-form">
 
-      <div asp-validation-summary="ModelOnly"
+        <div asp-validation-summary="ModelOnly"
              class="text-danger">
-      </div>
-
-        <div class="form-group">
-            <label for="Title">TITLE</label>
-            <input type="text" id="Title" name="Title" value="@Model?.Title" required />
-            <span asp-validation-for="Title"></span>
         </div>
 
-        <div class="form-group">
-            <label for="Description">DESCRIPTION</label>
-            <textarea id="Description" name="Description" rows="5">@Model?.Description</textarea>
-            <span asp-validation-for="Description"></span>
+        <div class="content-manager-form-layout">
+
+            <!-- CONTENT DETAILS -->
+
+            <section class="content-manager-panel content-manager-details-panel">
+
+                <header class="content-manager-panel-heading">
+                    <span>01 / CONTENT</span>
+                    <h2>CONTENT DETAILS</h2>
+                    <p>Describe and organise your content.</p>
+                </header>
+
+                <div class="form-group">
+                    <label for="Title">TITLE</label>
+                    <input type="text"
+                           id="Title"
+                           name="Title"
+                           value="@Model?.Title"
+                           required />
+                    <span asp-validation-for="Title"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="Description">DESCRIPTION</label>
+                    <textarea id="Description"
+                              name="Description"
+                              rows="7">@Model?.Description</textarea>
+                    <span asp-validation-for="Description"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="CategoryId">CATEGORY</label>
+
+                    <select id="CategoryId" name="CategoryId">
+                        <option value="">SELECT CATEGORY</option>
+
+                        @foreach (var category in (List<ContentCategory>)ViewBag.Categories)
+                        {
+                            <option value="@category.Id"
+                                    selected="@(selectedCategoryId == category.Id)">
+                                @category.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="Status">STATUS</label>
+
+                    <select id="Status" name="Status">
+                        @foreach (ContentStatus status in Enum.GetValues(typeof(ContentStatus)))
+                        {
+                            <option value="@status"
+                                    selected="@(Model?.Status == status)">
+                                @status
+                            </option>
+                        }
+                    </select>
+
+                    <span asp-validation-for="Status"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="DisplayOrder">DISPLAY ORDER</label>
+
+                    <input type="number"
+                           id="DisplayOrder"
+                           name="DisplayOrder"
+                           min="0"
+                           value="@(Model?.DisplayOrder ?? 0)" />
+
+                    <span asp-validation-for="DisplayOrder"></span>
+                </div>
+
+                <div class="form-group content-manager-featured">
+                    <label for="IsFeatured">FEATURED CONTENT</label>
+
+                    <input type="checkbox"
+                           id="IsFeatured"
+                           name="IsFeatured"
+                           value="true"
+                           checked="@(Model?.IsFeatured == true)" />
+                </div>
+
+            </section>
+
+            <!-- MEDIA ATTACHMENTS -->
+
+            <section class="content-manager-panel content-manager-media-panel">
+
+                <header class="content-manager-panel-heading">
+                    <span>02 / ATTACHMENTS</span>
+                    <h2>ATTACH MEDIA</h2>
+                    <p>Upload the files associated with this content item.</p>
+                </header>
+
+                <div class="content-manager-media-fields">
+
+                    <div class="form-group">
+                        <label for="MainVideo">MAIN VIDEO</label>
+
+                        <input type="file"
+                               id="MainVideo"
+                               name="mainVideo"
+                               accept=".mp4,.webm,.mov" />
+
+                        <small>MP4, WebM or MOV. Maximum 250 MB.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Thumbnail">THUMBNAIL</label>
+
+                        <input type="file"
+                               id="Thumbnail"
+                               name="thumbnail"
+                               accept=".jpg,.jpeg,.png,.webp" />
+
+                        <small>JPG, PNG or WebP. Maximum 15 MB.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Documents">DOCUMENTS</label>
+
+                        <input type="file"
+                               id="Documents"
+                               name="documents"
+                               accept=".pdf"
+                               multiple />
+
+                        <small>PDF files. Multiple documents allowed.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="GalleryImages">GALLERY IMAGES</label>
+
+                        <input type="file"
+                               id="GalleryImages"
+                               name="galleryImages"
+                               accept=".jpg,.jpeg,.png,.webp"
+                               multiple />
+
+                        <small>JPG, PNG or WebP. Multiple images allowed.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="AudioFiles">AUDIO FILES</label>
+
+                        <input type="file"
+                               id="AudioFiles"
+                               name="audioFiles"
+                               accept=".mp3,.wav"
+                               multiple />
+
+                        <small>MP3 or WAV files. Multiple audio files allowed.</small>
+                    </div>
+
+                </div>
+
+            </section>
+
         </div>
 
-        
-
-        <div class="form-group">
-            <label for="CategoryId">CATEGORY</label>
-            <select id="CategoryId" name="CategoryId">
-                <option value="">SELECT CATEGORY</option>
-
-                @foreach (var category in (List<ContentCategory>)ViewBag.Categories)
-                {
-                    <option value="@category.Id"
-                            selected="@(selectedCategoryId == category.Id)">
-                        @category.Name
-                    </option>
-                }
-
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="ContentType">CONTENT TYPE</label>
-            <select id="ContentType" name="ContentType">
-                @foreach (ContentType type in Enum.GetValues(typeof(ContentType)))
-                {
-                    <option value="@type"
-                            selected="@(Model?.ContentType == type)">
-                        @type
-                    </option>
-                }
-            </select>
-            <span asp-validation-for="ContentType"></span>
-        </div>
-
-        <div class="form-group">
-            <label for="Status">STATUS</label>
-            <select id="Status" name="Status">
-                @foreach (ContentStatus status in Enum.GetValues(typeof(ContentStatus)))
-                {
-                    <option value="@status"
-                            selected="@(Model?.Status == status)">
-                        @status
-                    </option>
-                }
-            </select>
-            <span asp-validation-for="Status"></span>
-        </div>
-
-        <div class="form-group">
-            <label for="DisplayOrder">DISPLAY ORDER</label>
-            <input type="number"
-                   id="DisplayOrder"
-                   name="DisplayOrder"
-                   value="@(Model?.DisplayOrder ?? 0)" />
-            <span asp-validation-for="DisplayOrder"></span>
-        </div>
-
-        <div class="form-group">
-            <label>
-                <input type="checkbox"
-                       name="IsFeatured"
-                       value="true"
-                       checked="@(Model?.IsFeatured == true)" />
-                FEATURED CONTENT
-            </label>
-        </div>
-
-        <div class="content-manager-media-section">
-
-            <h2>ATTACH MEDIA</h2>
-
-            <p>Upload the files associated with this content item.</p>
-
-            <div class="form-group">
-                <label for="MainVideo">MAIN VIDEO</label>
-                <input type="file"
-                       id="MainVideo"
-                       name="mainVideo"
-                       accept=".mp4,.webm,.mov" />
-                <small>MP4, WebM or MOV. Maximum 250 MB.</small>
-            </div>
-
-            <div class="form-group">
-                <label for="Thumbnail">THUMBNAIL</label>
-                <input type="file"
-                       id="Thumbnail"
-                       name="thumbnail"
-                       accept=".jpg,.jpeg,.png,.webp" />
-                <small>JPG, PNG or WebP. Maximum 15 MB.</small>
-            </div>
-
-            <div class="form-group">
-                <label for="Documents">DOCUMENTS</label>
-                <input type="file"
-                       id="Documents"
-                       name="documents"
-                       accept=".pdf"
-                       multiple />
-                <small>PDF files. You can select multiple documents.</small>
-            </div>
-
-            <div class="form-group">
-                <label for="GalleryImages">GALLERY IMAGES</label>
-                <input type="file"
-                       id="GalleryImages"
-                       name="galleryImages"
-                       accept=".jpg,.jpeg,.png,.webp"
-                       multiple />
-                <small>Select multiple images if needed.</small>
-            </div>
-
-            <div class="form-group">
-                <label for="AudioFiles">AUDIO FILES</label>
-                <input type="file"
-                       id="AudioFiles"
-                       name="audioFiles"
-                       accept=".mp3,.wav"
-                       multiple />
-                <small>MP3 or WAV files.</small>
-            </div>
-
-</div>
+        <!-- FORM ACTIONS -->
 
         <div class="content-manager-form-actions">
 

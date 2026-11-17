@@ -1,14 +1,6 @@
 ﻿
 namespace StefansDrumCorner.Web.Models.Content
 {
-    public enum ContentType
-    {
-        Video,
-        Article,
-        Gallery,
-        Resource
-    }
-
     public enum ContentStatus
     {
         Draft,
@@ -26,16 +18,12 @@ namespace StefansDrumCorner.Web.Models.Content
 
         public string Description { get; set; } = string.Empty;
 
-
-
         public int? CategoryId { get; set; }
 
         public ContentCategory? Category { get; set; }
 
         public ICollection<ContentMedia> ContentMedia { get; set; }
             = new List<ContentMedia>();
-
-        public ContentType ContentType { get; set; }
 
         public ContentStatus Status { get; set; } = ContentStatus.Draft;
 

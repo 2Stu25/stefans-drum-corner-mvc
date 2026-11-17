@@ -270,9 +270,6 @@ namespace StefansDrumCorner.Web.Migrations
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ContentType")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -460,7 +457,7 @@ namespace StefansDrumCorner.Web.Migrations
             modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentMedia", b =>
                 {
                     b.HasOne("StefansDrumCorner.Web.Models.Content.ContentItem", "ContentItem")
-                        .WithMany()
+                        .WithMany("ContentMedia")
                         .HasForeignKey("ContentItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -479,6 +476,11 @@ namespace StefansDrumCorner.Web.Migrations
             modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentCategory", b =>
                 {
                     b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentItem", b =>
+                {
+                    b.Navigation("ContentMedia");
                 });
 #pragma warning restore 612, 618
         }

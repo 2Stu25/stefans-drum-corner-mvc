@@ -63,7 +63,7 @@ namespace StefansDrumCorner.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
             int id,
-            [Bind("Title,Description,CategoryId,ContentType,Status,DisplayOrder,IsFeatured")]
+            [Bind("Title,Description,CategoryId,Status,DisplayOrder,IsFeatured")]
     ContentItem input,
             IFormFile? mainVideo,
             IFormFile? thumbnail,
@@ -86,7 +86,6 @@ namespace StefansDrumCorner.Web.Controllers
             contentItem.Title = input.Title?.Trim() ?? string.Empty;
             contentItem.Description = input.Description?.Trim() ?? string.Empty;
             contentItem.CategoryId = input.CategoryId;
-            contentItem.ContentType = input.ContentType;
             contentItem.Status = input.Status;
             contentItem.DisplayOrder = input.DisplayOrder;
             contentItem.IsFeatured = input.IsFeatured;
@@ -112,10 +111,7 @@ namespace StefansDrumCorner.Web.Controllers
                 }
             }
 
-            if (!Enum.IsDefined(typeof(ContentType), contentItem.ContentType))
-            {
-                ModelState.AddModelError("ContentType", "Invalid content type.");
-            }
+            
 
             if (!Enum.IsDefined(typeof(ContentStatus), contentItem.Status))
             {
@@ -433,10 +429,7 @@ namespace StefansDrumCorner.Web.Controllers
                 }
             }
 
-            if (!Enum.IsDefined(typeof(ContentType), contentItem.ContentType))
-            {
-                ModelState.AddModelError("ContentType", "Invalid content type.");
-            }
+            
 
             if (!Enum.IsDefined(typeof(ContentStatus), contentItem.Status))
             {
