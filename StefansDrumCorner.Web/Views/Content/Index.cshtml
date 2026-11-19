@@ -402,7 +402,8 @@
 
             @if (selectedItem != null)
             {
-                <form asp-controller="Content"
+                <form id="editContentForm"
+                      asp-controller="Content"
                       asp-action="Edit"
                       asp-route-id="@selectedItem.Id"
                       method="post"
@@ -562,6 +563,7 @@
                                 </select>
 
                             </div>
+                           
 
 
                             <div class="cm-featured-field">
@@ -585,130 +587,10 @@
                         </div>
 
                     </div>
-
-
-
-
-<!-- EXISTING MEDIA -->
-<div class="cm-property-section cm-attached-media">
-
-    <div class="cm-property-section-heading">
-        ATTACHED MEDIA
-    </div>
-
-    @if (selectedItem.ContentMedia != null &&
-         selectedItem.ContentMedia.Any())
-    {
-        <div class="cm-media-list">
-
-            @foreach (var media in selectedItem.ContentMedia)
-            {
-                <div class="cm-media-row">
-
-                    <div class="cm-media-info">
-
-                        <span class="cm-media-role">
-                            @media.Role
-                        </span>
-
-                        <span class="cm-media-filename">
-                            @media.MediaAsset?.OriginalFileName
-                        </span>
-
-                    </div>
-
-                    <div class="cm-media-actions">
-
-                        <span class="cm-media-details">
-                            @media.MediaAsset?.MediaType
-
-                            @if (media.MediaAsset != null)
-                            {
-                                <text> · @((media.MediaAsset.FileSizeBytes / 1024.0).ToString("N0")) KB</text>
-                            }
-                        </span>
-
-                        <label class="cm-remove-media">
-
-                            <input type="checkbox"
-                                   name="removeMediaIds"
-                                   value="@media.Id" />
-
-                            <span>REMOVE</span>
-
-                        </label>
-
-                    </div>
-
-                </div>
-            }
-
-        </div>
-    }
-    else
-    {
-        <div class="cm-no-media">
-            No media attached.
-        </div>
-    }
-
-</div>
-
-
-<!-- ADD MEDIA -->
-<div class="cm-property-section">
-
-    <div class="cm-property-section-heading">
-        ADD MEDIA
-    </div>
-
-    <p class="cm-upload-description">
-        Select one or more files. File types are detected automatically.
-    </p>
-
-    <div class="cm-field">
-
-        <label for="MediaFiles">SELECT FILES</label>
-
-        <input type="file"
-               id="MediaFiles"
-               name="mediaFiles"
-               accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.mp3,.wav,.pdf"
-               multiple />
-
-        <small>
-            Videos: MP4, WebM, MOV.
-            Images: JPG, PNG, WebP.
-            Audio: MP3, WAV.
-            Documents: PDF.
-        </small>
-
-    </div>
-
-</div>
-
-
-
-
-
-                    <!-- FORM ACTIONS -->
-                    <div class="cm-form-actions">
-
-                        <a asp-controller="Content"
-                           asp-action="Index"
-                           asp-route-selectedId="@selectedItem.Id"
-                           class="cm-cancel-button">
-                            CANCEL
-                        </a>
-
-                        <button type="submit"
-                                class="cm-save-button">
-                            SAVE CHANGES
-                        </button>
-
-                    </div>
+             
 
                 </form>
+
             }
             else
             {
@@ -726,8 +608,154 @@
             }
 
         </section>
+     @if (selectedItem != null)
+    {
+        <!-- FULL WIDTH MEDIA FOOTER -->
+        <section class="cm-media-footer">
+
+            <!-- EXISTING ATTACHMENTS -->
+            <div class="cm-media-footer-existing">
+
+                <div class="cm-media-footer-heading">
+    ATTACHED MEDIA
+</div>
+
+@if (selectedItem.ContentMedia != null &&
+     selectedItem.ContentMedia.Any())
+{
+    <div class="cm-media-footer-list">
+
+        @foreach (var media in selectedItem.ContentMedia)
+        {
+            <div class="cm-media-footer-row">
+
+                <span class="cm-media-role">
+                    @media.Role:
+                </span>
+
+                <span class="cm-media-filename">
+                    @media.MediaAsset?.OriginalFileName
+                </span>
+
+                <span class="cm-media-details">
+                    @media.MediaAsset?.MediaType
+
+                    @if (media.MediaAsset != null)
+                    {
+                        <text> · @((media.MediaAsset.FileSizeBytes / 1024.0).ToString("N0")) KB</text>
+                    }
+                </span>
+
+                <form asp-controller="Content"
+                      asp-action="RemoveMedia"
+                      method="post"
+                      class="cm-remove-media-form">
+
+                    <input type="hidden"
+                           name="contentItemId"
+                           value="@selectedItem.Id" />
+
+                    <input type="hidden"
+                           name="mediaId"
+                           value="@media.Id" />
+
+                    <details class="cm-remove-confirm">
+
+                        <summary class="cm-remove-media-button">
+                            REMOVE
+                        </summary>
+
+                        <div class="cm-remove-confirm-panel">
+                            <span>Remove this attachment?</span>
+
+                            <div class="cm-remove-confirm-actions">
+                                <button type="button"
+                                        class="cm-remove-cancel"
+                                        onclick="this.closest('details').open = false">
+                                    CANCEL
+                                </button>
+
+                                <button type="submit"
+                                        class="cm-remove-confirm-button">
+                                    CONFIRM REMOVE
+                                </button>
+                            </div>
+                        </div>
+
+                    </details>
+
+                </form>
+
+            </div>
+        }
+
+    </div>
+}
+                else
+                {
+                    <div class="cm-no-media">
+                        No media attached.
+                    </div>
+                }
+
+            </div>
+
+
+            <!-- ADD MEDIA -->
+            <div class="cm-media-footer-add">
+
+                <div class="cm-media-footer-heading">
+                    ADD MEDIA
+                </div>
+
+                <p class="cm-upload-description">
+                    Select one or more files.
+                </p>
+
+                <input type="file"
+                       id="MediaFiles"
+                       name="mediaFiles"
+                       form="editContentForm"
+                       accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.mp3,.wav,.pdf"
+                       multiple />
+
+                <small>
+                    Videos: MP4, WebM, MOV.
+                    Images: JPG, PNG, WebP.
+                    Audio: MP3, WAV.
+                    Documents: PDF.
+                </small>
+
+                <div class="cm-media-footer-actions">
+
+                    <a asp-controller="Content"
+                       asp-action="Index"
+                       asp-route-selectedId="@selectedItem.Id"
+                       class="cm-cancel-button">
+                        CANCEL
+                    </a>
+
+                    <button type="submit"
+                            form="editContentForm"
+                            class="cm-save-button">
+                        SAVE CHANGES
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            
+
+        </section>
+    }
 
     </main>
+
+    
+   
+
 
 
 

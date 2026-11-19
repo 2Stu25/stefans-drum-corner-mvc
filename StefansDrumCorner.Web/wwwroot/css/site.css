@@ -2666,7 +2666,26 @@ body.modal-open {
     .footer-admin-link:hover {
         color: var(--color-accent);
     }
+/* Full viewport management layout */
 
+html,
+body.management-layout {
+    min-height: 100%;
+    margin: 0;
+}
+
+body.management-layout {
+    min-height: 100vh;
+    background: #252525;
+}
+
+.management-main {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: #252525;
+}
 
 
 

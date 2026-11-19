@@ -25,7 +25,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    min-height: calc(100vh - 80px);
+    min-height: 100vh;
     overflow: hidden;
     background: var(--cm-bg);
     color: var(--cm-text);
@@ -136,6 +136,7 @@
         }
 
 
+
 /* ---------------------------------------------------------
    3. MAIN THREE-PANEL LAYOUT
    --------------------------------------------------------- */
@@ -143,9 +144,35 @@
 .cm-main {
     display: grid;
     grid-template-columns: minmax(190px, 0.75fr) minmax(270px, 1.15fr) minmax(360px, 1.5fr);
+    grid-template-rows: minmax(0, 1fr) auto;
     flex: 1;
     min-height: 650px;
 }
+
+/* Left workspace panel spans both rows */
+.cm-sidebar {
+    grid-column: 1;
+    grid-row: 1 / 3;
+}
+
+/* Content list occupies the upper middle column */
+.cm-content-panel {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+/* Properties occupy the upper right column */
+.cm-properties-panel {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+/* Media footer occupies the lower two columns */
+.cm-media-footer {
+    grid-column: 2 / 4;
+    grid-row: 2;
+}
+
 
 
 /* ---------------------------------------------------------
@@ -720,6 +747,7 @@
 
 
 
+
 /* =========================================================
    8. ATTACHED MEDIA
    ========================================================= */
@@ -790,30 +818,99 @@
     text-align: right;
 }
 
-.cm-remove-media {
+.cm-no-media {
+    margin: 0;
+    color: #999;
+    font-size: 10px;
+}
+
+/* Individual remove action */
+
+.cm-remove-media-form {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    gap: 5px;
+    margin: 0;
+}
+
+.cm-remove-confirm {
+    position: relative;
+}
+
+    .cm-remove-confirm summary {
+        list-style: none;
+        cursor: pointer;
+    }
+
+        .cm-remove-confirm summary::-webkit-details-marker {
+            display: none;
+        }
+
+.cm-remove-media-button {
+    display: inline-block;
+    padding: 4px 7px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: transparent;
     color: #d49a72;
     font-size: 9px;
     white-space: nowrap;
     cursor: pointer;
 }
 
-.cm-remove-media input {
-    width: 12px;
-    height: 12px;
-    margin: 0;
-    accent-color: var(--cm-orange);
+    .cm-remove-media-button:hover {
+        color: #fff;
+        border-color: #d49a72;
+    }
+
+/* Inline removal confirmation */
+
+.cm-remove-confirm-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    width: 230px;
+    padding: 12px;
+    background: #383838;
+    border: 1px solid #626262;
+    border-radius: 5px;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
+    color: #e8e6e1;
+    font-size: 11px;
+}
+
+.cm-remove-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.cm-remove-cancel,
+.cm-remove-confirm-button {
+    padding: 5px 8px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: transparent;
+    font-size: 9px;
     cursor: pointer;
 }
 
-.cm-no-media {
-    margin: 0;
-    color: #999;
-    font-size: 10px;
+.cm-remove-cancel {
+    color: #c8c8c8;
 }
+
+.cm-remove-confirm-button {
+    color: #83c995;
+    border-color: #555;
+}
+
+    .cm-remove-cancel:hover,
+    .cm-remove-confirm-button:hover {
+        background: #484848;
+    }
+
 
 
 /* ---------------------------------------------------------
@@ -1283,3 +1380,167 @@
         max-width: 130px;
     }
 }
+
+
+/* =========================================================
+   18. FULL WIDTH MEDIA FOOTER
+   ========================================================= */
+
+.cm-media-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+    gap: 0;
+    background: #303030;
+    border-top: 1px solid var(--cm-border);
+    border-bottom: 1px solid var(--cm-border);
+}
+
+.cm-media-footer-existing,
+.cm-media-footer-add {
+    min-width: 0;
+    padding: 16px 22px;
+}
+
+.cm-media-footer-existing {
+    border-right: 1px solid var(--cm-border);
+}
+
+.cm-media-footer-heading {
+    margin-bottom: 12px;
+    color: var(--cm-blue);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+}
+
+.cm-media-footer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.cm-media-footer-row {
+    display: grid;
+    grid-template-columns: auto minmax(100px, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #484848;
+}
+
+    .cm-media-footer-row:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .cm-media-footer-row .cm-media-filename {
+        min-width: 0;
+    }
+
+    .cm-media-footer-row .cm-media-details {
+        white-space: nowrap;
+    }
+
+.cm-media-footer-add {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+    .cm-media-footer-add .cm-upload-description {
+        margin: -3px 0 10px;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .cm-media-footer-add input[type="file"] {
+        width: 100%;
+        min-width: 0;
+        padding: 7px;
+        border: 1px solid #505050;
+        border-radius: 3px;
+        background: #252525;
+        color: #aaa;
+        font-size: 10px;
+    }
+
+        .cm-media-footer-add input[type="file"]::file-selector-button {
+            padding: 6px 9px;
+            margin-right: 8px;
+            border: 1px solid #606060;
+            border-radius: 3px;
+            background: transparent;
+            color: #ddd;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+    .cm-media-footer-add small {
+        margin-top: 8px;
+        color: #999;
+        font-size: 9px;
+        line-height: 1.6;
+    }
+
+.cm-media-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    width: 100%;
+    margin-top: auto;
+    padding: 14px 0 0;
+    background: transparent;
+    border-top: 1px solid #484848;
+}
+
+/* Tablet */
+
+@media (max-width: 850px) {
+    .cm-media-footer {
+        grid-template-columns: 1fr;
+    }
+
+    .cm-media-footer-existing {
+        border-right: 0;
+        border-bottom: 1px solid var(--cm-border);
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    .cm-media-footer-existing,
+    .cm-media-footer-add {
+        padding: 15px;
+    }
+
+    .cm-media-footer-row {
+        grid-template-columns: 1fr auto;
+        gap: 5px 10px;
+    }
+
+        .cm-media-footer-row .cm-media-role {
+            grid-column: 1;
+        }
+
+        .cm-media-footer-row .cm-media-filename {
+            grid-column: 1;
+        }
+
+        .cm-media-footer-row .cm-media-details {
+            grid-column: 1;
+            text-align: left;
+        }
+
+        .cm-media-footer-row .cm-remove-media {
+            grid-column: 2;
+            grid-row: 1 / span 3;
+        }
+
+    .cm-media-footer-actions {
+        padding: 12px 15px;
+    }
+}
+

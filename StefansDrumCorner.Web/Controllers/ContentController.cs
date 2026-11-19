@@ -362,6 +362,82 @@ namespace StefansDrumCorner.Web.Controllers
             }
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveMedia(
+            int contentItemId,
+            int mediaId)
+        {
+            // Find the attachment and verify that it belongs to this content item.
+            var attachment = await _context.ContentMedia
+                .Include(cm => cm.MediaAsset)
+                .FirstOrDefaultAsync(cm =>
+                    cm.Id == mediaId &&
+                    cm.ContentItemId == contentItemId);
+
+            if (attachment == null)
+            {
+                return NotFound();
+            }
+
+            // Keep the asset information before removing the attachment.
+            int mediaAssetId = attachment.MediaAssetId;
+            var mediaAsset = attachment.MediaAsset;
+
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Remove the attachment relationship.
+                _context.ContentMedia.Remove(attachment);
+                await _context.SaveChangesAsync();
+
+                // Check whether another content item still uses this asset.
+                bool assetIsStillUsed = await _context.ContentMedia
+                    .AnyAsync(cm => cm.MediaAssetId == mediaAssetId);
+
+                if (!assetIsStillUsed)
+                {
+                    // No other content item uses it, so remove its database record.
+                    _context.MediaAssets.Remove(mediaAsset);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+
+                // Delete the physical file only if no other item uses it.
+                if (!assetIsStillUsed)
+                {
+                    try
+                    {
+                        await _mediaStorage.DeleteFileAsync(mediaAsset.StorageKey);
+                    }
+                    catch (IOException)
+                    {
+                        // The database update succeeded.
+                        // A leftover physical file can be cleaned up later.
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // The database update succeeded.
+                        // A leftover physical file can be cleaned up later.
+                    }
+                }
+
+                return RedirectToAction(
+                    nameof(Index),
+                    new { selectedId = contentItemId });
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+
         // =====================================================
         // CREATE CONTENT
         // =====================================================
