@@ -45,6 +45,21 @@
         </button>
 
     </form>
+    @if (!contentItems.Any() && !(bool)ViewBag.HasSubCategories)
+    {
+        <form asp-controller="Categories"
+              asp-action="Delete"
+              asp-route-id="@Model.Id"
+              method="post"
+              class="content-manager-form">
+
+            <button type="submit"
+                    class="content-manager-back"
+                    onclick="return confirm('Permanently delete this empty category? This action cannot be undone.')">
+                DELETE CATEGORY
+            </button>
+        </form>
+    }
 
     @if (Model.SubCategories.Any())
     {

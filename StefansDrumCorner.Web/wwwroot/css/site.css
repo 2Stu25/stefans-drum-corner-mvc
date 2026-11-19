@@ -2577,6 +2577,23 @@ body.modal-open {
     font-size: 14px;
 }
 
+.admin-category-delete {
+    padding: 5px 10px;
+    border: 1px solid var(--color-accent);
+    background: transparent;
+    color: var(--color-accent);
+    font-family: var(--font-label);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+}
+
+    .admin-category-delete:hover {
+        background: var(--color-accent);
+        color: #ffffff;
+    }
+
 .admin-subcategory-label {
     margin-bottom: 10px;
     color: #2877a8;

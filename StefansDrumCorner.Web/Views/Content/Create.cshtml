@@ -1,4 +1,5 @@
-﻿@using StefansDrumCorner.Web.Models.Content
+﻿
+@using StefansDrumCorner.Web.Models.Content
 @model ContentItem
 
 @{
@@ -131,69 +132,33 @@
             <section class="content-manager-panel content-manager-media-panel">
 
                 <header class="content-manager-panel-heading">
-                    <span>02 / ATTACHMENTS</span>
+                    <span>ATTACHMENTS</span>
                     <h2>ATTACH MEDIA</h2>
-                    <p>Upload the files associated with this content item.</p>
+                    <p>Select one or more files. File types are detected automatically.</p>
                 </header>
 
                 <div class="content-manager-media-fields">
 
                     <div class="form-group">
-                        <label for="MainVideo">MAIN VIDEO</label>
+                        <label for="MediaFiles">SELECT MEDIA FILES</label>
 
                         <input type="file"
-                               id="MainVideo"
-                               name="mainVideo"
-                               accept=".mp4,.webm,.mov" />
-
-                        <small>MP4, WebM or MOV. Maximum 250 MB.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="Thumbnail">THUMBNAIL</label>
-
-                        <input type="file"
-                               id="Thumbnail"
-                               name="thumbnail"
-                               accept=".jpg,.jpeg,.png,.webp" />
-
-                        <small>JPG, PNG or WebP. Maximum 15 MB.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="Documents">DOCUMENTS</label>
-
-                        <input type="file"
-                               id="Documents"
-                               name="documents"
-                               accept=".pdf"
+                               id="MediaFiles"
+                               name="mediaFiles"
+                               accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.mp3,.wav,.pdf"
                                multiple />
 
-                        <small>PDF files. Multiple documents allowed.</small>
-                    </div>
+                        <small>
+                            Videos: MP4, WebM, MOV.
+                            Images: JPG, PNG, WebP.
+                            Audio: MP3, WAV.
+                            Documents: PDF.
+                        </small>
 
-                    <div class="form-group">
-                        <label for="GalleryImages">GALLERY IMAGES</label>
-
-                        <input type="file"
-                               id="GalleryImages"
-                               name="galleryImages"
-                               accept=".jpg,.jpeg,.png,.webp"
-                               multiple />
-
-                        <small>JPG, PNG or WebP. Multiple images allowed.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="AudioFiles">AUDIO FILES</label>
-
-                        <input type="file"
-                               id="AudioFiles"
-                               name="audioFiles"
-                               accept=".mp3,.wav"
-                               multiple />
-
-                        <small>MP3 or WAV files. Multiple audio files allowed.</small>
+                        <small>
+                            You can select several files at once.
+                            Each file will be classified automatically.
+                        </small>
                     </div>
 
                 </div>

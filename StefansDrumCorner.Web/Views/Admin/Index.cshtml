@@ -119,6 +119,19 @@
                         + ADD CONTENT →
                     </a>
 
+                    <form asp-controller="Categories"
+                          asp-action="Delete"
+                          asp-route-id="@category.Id"
+                          method="post"
+                          style="display: inline;"
+                          onsubmit="return confirm('Permanently delete this category? This cannot be undone.');">
+
+                        <button type="submit" class="admin-category-delete">
+                            DELETE
+                        </button>
+
+                    </form>
+
                 </div>
 
                 <p>@category.Subtitle</p>

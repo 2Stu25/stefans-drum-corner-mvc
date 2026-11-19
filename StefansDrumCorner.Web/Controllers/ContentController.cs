@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StefansDrumCorner.Web.Data;
@@ -22,18 +23,90 @@ namespace StefansDrumCorner.Web.Controllers
             _mediaStorage = mediaStorage;
         }
 
-        public async Task<IActionResult> Index()
+        // =====================================================
+        // CONTENT MANAGER
+        // =====================================================
+
+        public async Task<IActionResult> Index(
+            int? selectedId,
+            int? categoryId,
+            ContentStatus? status)
         {
-            var contentItems = await _context.ContentItems
+            // Load active categories for the workspace browser.
+            var categories = await _context.ContentCategories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.ParentCategoryId.HasValue)
+                .ThenBy(c => c.ParentCategoryId)
+                .ThenBy(c => c.DisplayOrder)
+                .ToListAsync();
+
+            // Start with all content items.
+            var query = _context.ContentItems
                 .Include(c => c.Category)
+                .AsQueryable();
+
+            // Filter by category when one is selected.
+            if (categoryId.HasValue)
+            {
+                bool categoryExists = categories.Any(
+                    c => c.Id == categoryId.Value);
+
+                if (!categoryExists)
+                {
+                    return NotFound();
+                }
+
+                query = query.Where(
+                    c => c.CategoryId == categoryId.Value);
+            }
+
+            // Filter by publication status.
+            if (status.HasValue)
+            {
+                query = query.Where(
+                    c => c.Status == status.Value);
+            }
+
+            // Get the filtered content list.
+            var contentItems = await query
                 .OrderBy(c => c.DisplayOrder)
                 .ThenByDescending(c => c.CreatedAtUtc)
                 .ToListAsync();
 
+            // Keep the requested selection if it belongs
+            // to the current filtered list.
+            var selectedItemId = selectedId;
+
+            if (!selectedItemId.HasValue ||
+                !contentItems.Any(c => c.Id == selectedItemId.Value))
+            {
+                selectedItemId = contentItems.FirstOrDefault()?.Id;
+            }
+
+            ContentItem? selectedItem = null;
+
+            if (selectedItemId.HasValue)
+            {
+                selectedItem = await _context.ContentItems
+                    .Include(c => c.Category)
+                        .ThenInclude(c => c!.ParentCategory)
+                    .Include(c => c.ContentMedia)
+                        .ThenInclude(m => m.MediaAsset)
+                    .FirstOrDefaultAsync(
+                        c => c.Id == selectedItemId.Value);
+            }
+
+            ViewBag.SelectedItem = selectedItem;
+            ViewBag.Categories = categories;
+            ViewBag.SelectedCategoryId = categoryId;
+            ViewBag.SelectedStatus = status?.ToString();
+
             return View(contentItems);
         }
 
-        
+        // =====================================================
+        // EDIT CONTENT
+        // =====================================================
 
         public async Task<IActionResult> Edit(int id)
         {
@@ -48,28 +121,19 @@ namespace StefansDrumCorner.Web.Controllers
                 return NotFound();
             }
 
-            ViewBag.Categories = await _context.ContentCategories
-                .Where(c => c.IsActive)
-                .OrderBy(c => c.ParentCategoryId.HasValue)
-                .ThenBy(c => c.ParentCategoryId)
-                .ThenBy(c => c.DisplayOrder)
-                .ToListAsync();
+            ViewBag.Categories = await LoadCategoriesAsync(
+                contentItem.CategoryId);
 
             return View(contentItem);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
             int id,
             [Bind("Title,Description,CategoryId,Status,DisplayOrder,IsFeatured")]
-    ContentItem input,
-            IFormFile? mainVideo,
-            IFormFile? thumbnail,
-            List<IFormFile>? documents,
-            List<IFormFile>? galleryImages,
-            List<IFormFile>? audioFiles,
+            ContentItem input,
+            List<IFormFile>? mediaFiles,
             List<int>? removeMediaIds)
         {
             var contentItem = await _context.ContentItems
@@ -93,7 +157,9 @@ namespace StefansDrumCorner.Web.Controllers
             // Validate the submitted values.
             if (string.IsNullOrWhiteSpace(contentItem.Title))
             {
-                ModelState.AddModelError("Title", "A title is required.");
+                ModelState.AddModelError(
+                    "Title",
+                    "A title is required.");
             }
 
             if (contentItem.CategoryId.HasValue)
@@ -111,11 +177,11 @@ namespace StefansDrumCorner.Web.Controllers
                 }
             }
 
-            
-
             if (!Enum.IsDefined(typeof(ContentStatus), contentItem.Status))
             {
-                ModelState.AddModelError("Status", "Invalid content status.");
+                ModelState.AddModelError(
+                    "Status",
+                    "Invalid content status.");
             }
 
             if (contentItem.DisplayOrder < 0)
@@ -143,12 +209,8 @@ namespace StefansDrumCorner.Web.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = await _context.ContentCategories
-                    .Where(c => c.IsActive || c.Id == contentItem.CategoryId)
-                    .OrderBy(c => c.ParentCategoryId.HasValue)
-                    .ThenBy(c => c.ParentCategoryId)
-                    .ThenBy(c => c.DisplayOrder)
-                    .ToListAsync();
+                ViewBag.Categories = await LoadCategoriesAsync(
+                    contentItem.CategoryId);
 
                 return View(contentItem);
             }
@@ -171,124 +233,52 @@ namespace StefansDrumCorner.Web.Controllers
 
             try
             {
+
                 // Start with attachments explicitly selected for removal.
                 var attachmentsToRemove = new List<ContentMedia>(
                     selectedAttachments);
 
-                // A new main video replaces the existing main video.
-                if (mainVideo != null && mainVideo.Length > 0)
-                {
-                    attachmentsToRemove.AddRange(
-                        contentItem.ContentMedia.Where(
-                            cm => cm.Role == MediaRole.MainVideo));
-                }
-
-                // A new thumbnail replaces the existing thumbnail.
-                if (thumbnail != null && thumbnail.Length > 0)
-                {
-                    attachmentsToRemove.AddRange(
-                        contentItem.ContentMedia.Where(
-                            cm => cm.Role == MediaRole.Thumbnail));
-                }
-
-                // Avoid processing the same attachment more than once.
-                attachmentsToRemove = attachmentsToRemove
-                    .DistinctBy(cm => cm.Id)
-                    .ToList();
-
+                // Remember the assets that may become orphaned.
                 foreach (var attachment in attachmentsToRemove)
                 {
                     assetsToCheck.Add(attachment.MediaAssetId);
                 }
 
-                // Remove the old attachment relationships.
+                // Remove the selected attachment relationships.
                 _context.ContentMedia.RemoveRange(attachmentsToRemove);
 
-                // Add replacement main video.
-                if (mainVideo != null && mainVideo.Length > 0)
+                // Determine the next display order for each media role.
+                var nextOrderByRole = contentItem.ContentMedia
+                    .Where(cm => !attachmentsToRemove.Contains(cm))
+                    .GroupBy(cm => cm.Role)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.Max(cm => cm.DisplayOrder) + 1);
+
+                
+                // Process all newly uploaded files.
+                foreach (var file in mediaFiles ?? new List<IFormFile>())
                 {
+                    if (file == null || file.Length == 0)
+                        continue;
+
+                    var classification = GetMediaClassification(file);
+
+                    if (!nextOrderByRole.TryGetValue(
+                        classification.Role, out int displayOrder))
+                    {
+                        displayOrder = 0;
+                    }
+
                     await AddMediaAsync(
-                        mainVideo,
-                        MediaType.Video,
-                        MediaRole.MainVideo,
+                        file,
+                        classification.MediaType,
+                        classification.Role,
                         contentItem.Id,
-                        0,
+                        displayOrder,
                         savedAssets);
-                }
 
-                // Add replacement thumbnail.
-                if (thumbnail != null && thumbnail.Length > 0)
-                {
-                    await AddMediaAsync(
-                        thumbnail,
-                        MediaType.Image,
-                        MediaRole.Thumbnail,
-                        contentItem.Id,
-                        0,
-                        savedAssets);
-                }
-
-                // Add new documents after existing documents.
-                int documentOrder = contentItem.ContentMedia
-                    .Where(cm => cm.Role == MediaRole.Document)
-                    .Select(cm => cm.DisplayOrder)
-                    .DefaultIfEmpty(-1)
-                    .Max() + 1;
-
-                foreach (var document in documents ?? new List<IFormFile>())
-                {
-                    if (document.Length > 0)
-                    {
-                        await AddMediaAsync(
-                            document,
-                            MediaType.Document,
-                            MediaRole.Document,
-                            contentItem.Id,
-                            documentOrder++,
-                            savedAssets);
-                    }
-                }
-
-                // Add new gallery images.
-                int imageOrder = contentItem.ContentMedia
-                    .Where(cm => cm.Role == MediaRole.GalleryImage)
-                    .Select(cm => cm.DisplayOrder)
-                    .DefaultIfEmpty(-1)
-                    .Max() + 1;
-
-                foreach (var image in galleryImages ?? new List<IFormFile>())
-                {
-                    if (image.Length > 0)
-                    {
-                        await AddMediaAsync(
-                            image,
-                            MediaType.Image,
-                            MediaRole.GalleryImage,
-                            contentItem.Id,
-                            imageOrder++,
-                            savedAssets);
-                    }
-                }
-
-                // Add new audio files.
-                int audioOrder = contentItem.ContentMedia
-                    .Where(cm => cm.Role == MediaRole.Audio)
-                    .Select(cm => cm.DisplayOrder)
-                    .DefaultIfEmpty(-1)
-                    .Max() + 1;
-
-                foreach (var audio in audioFiles ?? new List<IFormFile>())
-                {
-                    if (audio.Length > 0)
-                    {
-                        await AddMediaAsync(
-                            audio,
-                            MediaType.Audio,
-                            MediaRole.Audio,
-                            contentItem.Id,
-                            audioOrder++,
-                            savedAssets);
-                    }
+                    nextOrderByRole[classification.Role] = displayOrder + 1;
                 }
 
                 // Save content and attachment changes.
@@ -309,7 +299,8 @@ namespace StefansDrumCorner.Web.Controllers
 
                 await transaction.CommitAsync();
 
-                // Delete physical files only after the database transaction succeeds.
+                // Delete physical files only after the database
+                // transaction succeeds.
                 foreach (var asset in orphanedAssets)
                 {
                     try
@@ -328,7 +319,9 @@ namespace StefansDrumCorner.Web.Controllers
                     }
                 }
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(
+                    nameof(Index),
+                    new { selectedId = contentItem.Id });
             }
             catch (ArgumentException ex)
             {
@@ -350,12 +343,8 @@ namespace StefansDrumCorner.Web.Controllers
 
                 ModelState.AddModelError(string.Empty, ex.Message);
 
-                ViewBag.Categories = await _context.ContentCategories
-                    .Where(c => c.IsActive || c.Id == contentItem.CategoryId)
-                    .OrderBy(c => c.ParentCategoryId.HasValue)
-                    .ThenBy(c => c.ParentCategoryId)
-                    .ThenBy(c => c.DisplayOrder)
-                    .ToListAsync();
+                ViewBag.Categories = await LoadCategoriesAsync(
+                    contentItem.CategoryId);
 
                 return View(contentItem);
             }
@@ -373,20 +362,20 @@ namespace StefansDrumCorner.Web.Controllers
             }
         }
 
+        // =====================================================
+        // CREATE CONTENT
+        // =====================================================
 
         public async Task<IActionResult> Create(int? categoryId)
         {
-            ViewBag.Categories = await _context.ContentCategories
-                .Where(c => c.IsActive)
-                .OrderBy(c => c.ParentCategoryId.HasValue)
-                .ThenBy(c => c.ParentCategoryId)
-                .ThenBy(c => c.DisplayOrder)
-                .ToListAsync();
+            ViewBag.Categories = await LoadCategoriesAsync();
 
             if (categoryId.HasValue)
             {
                 bool categoryExists = await _context.ContentCategories
-                    .AnyAsync(c => c.Id == categoryId && c.IsActive);
+                    .AnyAsync(c =>
+                        c.Id == categoryId.Value &&
+                        c.IsActive);
 
                 if (!categoryExists)
                 {
@@ -404,52 +393,50 @@ namespace StefansDrumCorner.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("Title,Description,CategoryId,ContentType,Status,DisplayOrder,IsFeatured")]
-            ContentItem contentItem,
-            IFormFile? mainVideo,
-            IFormFile? thumbnail,
-            List<IFormFile>? documents,
-            List<IFormFile>? galleryImages,
-            List<IFormFile>? audioFiles)
+    ContentItem contentItem,
+            List<IFormFile>? mediaFiles)
         {
             // Validate required fields.
             if (string.IsNullOrWhiteSpace(contentItem.Title))
             {
-                ModelState.AddModelError("Title", "A title is required.");
+                ModelState.AddModelError(
+                    "Title",
+                    "A title is required.");
             }
 
             // Check that the selected category exists and is active.
             if (contentItem.CategoryId.HasValue)
             {
                 bool categoryExists = await _context.ContentCategories
-                    .AnyAsync(c => c.Id == contentItem.CategoryId && c.IsActive);
+                    .AnyAsync(c =>
+                        c.Id == contentItem.CategoryId &&
+                        c.IsActive);
 
                 if (!categoryExists)
                 {
-                    ModelState.AddModelError("CategoryId", "Please select a valid category.");
+                    ModelState.AddModelError(
+                        "CategoryId",
+                        "Please select a valid category.");
                 }
             }
 
-            
-
             if (!Enum.IsDefined(typeof(ContentStatus), contentItem.Status))
             {
-                ModelState.AddModelError("Status", "Invalid content status.");
+                ModelState.AddModelError(
+                    "Status",
+                    "Invalid content status.");
             }
 
             if (contentItem.DisplayOrder < 0)
             {
-                ModelState.AddModelError("DisplayOrder", "Display order cannot be negative.");
+                ModelState.AddModelError(
+                    "DisplayOrder",
+                    "Display order cannot be negative.");
             }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = await _context.ContentCategories
-                    .Where(c => c.IsActive)
-                    .OrderBy(c => c.ParentCategoryId.HasValue)
-                    .ThenBy(c => c.ParentCategoryId)
-                    .ThenBy(c => c.DisplayOrder)
-                    .ToListAsync();
-
+                ViewBag.Categories = await LoadCategoriesAsync();
                 return View(contentItem);
             }
 
@@ -470,7 +457,7 @@ namespace StefansDrumCorner.Web.Controllers
 
             contentItem.Slug = slug;
 
-            // Set server controlled dates.
+            // Set server-controlled dates.
             contentItem.CreatedAtUtc = DateTime.UtcNow;
 
             if (contentItem.Status == ContentStatus.Published)
@@ -490,79 +477,35 @@ namespace StefansDrumCorner.Web.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Main video.
-                if (mainVideo != null && mainVideo.Length > 0)
+                // Determine the next display order for each media role.
+                var nextOrderByRole = new Dictionary<MediaRole, int>();
+
+                // Process all uploaded files.
+                foreach (var file in mediaFiles ?? new List<IFormFile>())
                 {
+                    if (file == null || file.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var classification = GetMediaClassification(file);
+
+                    if (!nextOrderByRole.TryGetValue(
+                        classification.Role,
+                        out int displayOrder))
+                    {
+                        displayOrder = 0;
+                    }
+
                     await AddMediaAsync(
-                        mainVideo,
-                        MediaType.Video,
-                        MediaRole.MainVideo,
+                        file,
+                        classification.MediaType,
+                        classification.Role,
                         contentItem.Id,
-                        0,
+                        displayOrder,
                         savedAssets);
-                }
 
-                // Thumbnail.
-                if (thumbnail != null && thumbnail.Length > 0)
-                {
-                    await AddMediaAsync(
-                        thumbnail,
-                        MediaType.Image,
-                        MediaRole.Thumbnail,
-                        contentItem.Id,
-                        0,
-                        savedAssets);
-                }
-
-                // Documents.
-                int documentOrder = 0;
-
-                foreach (var document in documents ?? new List<IFormFile>())
-                {
-                    if (document.Length > 0)
-                    {
-                        await AddMediaAsync(
-                            document,
-                            MediaType.Document,
-                            MediaRole.Document,
-                            contentItem.Id,
-                            documentOrder++,
-                            savedAssets);
-                    }
-                }
-
-                // Gallery images.
-                int imageOrder = 0;
-
-                foreach (var image in galleryImages ?? new List<IFormFile>())
-                {
-                    if (image.Length > 0)
-                    {
-                        await AddMediaAsync(
-                            image,
-                            MediaType.Image,
-                            MediaRole.GalleryImage,
-                            contentItem.Id,
-                            imageOrder++,
-                            savedAssets);
-                    }
-                }
-
-                // Audio files.
-                int audioOrder = 0;
-
-                foreach (var audio in audioFiles ?? new List<IFormFile>())
-                {
-                    if (audio.Length > 0)
-                    {
-                        await AddMediaAsync(
-                            audio,
-                            MediaType.Audio,
-                            MediaRole.Audio,
-                            contentItem.Id,
-                            audioOrder++,
-                            savedAssets);
-                    }
+                    nextOrderByRole[classification.Role] = displayOrder + 1;
                 }
 
                 // Save all media records.
@@ -570,7 +513,9 @@ namespace StefansDrumCorner.Web.Controllers
 
                 await transaction.CommitAsync();
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(
+                    nameof(Index),
+                    new { selectedId = contentItem.Id });
             }
             catch (ArgumentException ex)
             {
@@ -584,12 +529,7 @@ namespace StefansDrumCorner.Web.Controllers
 
                 ModelState.AddModelError(string.Empty, ex.Message);
 
-                ViewBag.Categories = await _context.ContentCategories
-                    .Where(c => c.IsActive)
-                    .OrderBy(c => c.ParentCategoryId.HasValue)
-                    .ThenBy(c => c.ParentCategoryId)
-                    .ThenBy(c => c.DisplayOrder)
-                    .ToListAsync();
+                ViewBag.Categories = await LoadCategoriesAsync();
 
                 return View(contentItem);
             }
@@ -606,34 +546,85 @@ namespace StefansDrumCorner.Web.Controllers
                 throw;
             }
         }
-        private async Task AddMediaAsync(
-            IFormFile file,
-            MediaType mediaType,
-            MediaRole role,
-            int contentItemId,
-            int displayOrder,
-            List<MediaAsset> savedAssets)
+
+
+        // =====================================================
+        // HELPERS
+        // =====================================================
+
+        private async Task<List<ContentCategory>> LoadCategoriesAsync(
+            int? includeCategoryId = null)
         {
-            // Save the physical file.
-            MediaAsset asset = await _mediaStorage.SaveFileAsync(
-                file,
-                mediaType);
-
-            // Keep track of the file for cleanup if something fails.
-            savedAssets.Add(asset);
-
-            // Register the media asset in the database.
-            _context.MediaAssets.Add(asset);
-
-            // Connect the media asset to its content item.
-            _context.ContentMedia.Add(new ContentMedia
-            {
-                ContentItemId = contentItemId,
-                MediaAsset = asset,
-                Role = role,
-                DisplayOrder = displayOrder
-            });
+            return await _context.ContentCategories
+                .Where(c =>
+                    c.IsActive ||
+                    (includeCategoryId.HasValue &&
+                     c.Id == includeCategoryId.Value))
+                .OrderBy(c => c.ParentCategoryId.HasValue)
+                .ThenBy(c => c.ParentCategoryId)
+                .ThenBy(c => c.DisplayOrder)
+                .ToListAsync();
         }
+
+
+        private static (MediaType MediaType, MediaRole Role)
+            GetMediaClassification(IFormFile file)
+        {
+            string extension = Path.GetExtension(file.FileName)
+                .ToLowerInvariant();
+
+            return extension switch
+            {
+                // Video
+                ".mp4" or ".webm" or ".mov" =>
+                    (MediaType.Video, MediaRole.MainVideo),
+
+                // Images
+                ".jpg" or ".jpeg" or ".png" or ".webp" =>
+                    (MediaType.Image, MediaRole.GalleryImage),
+
+                // Audio
+                ".mp3" or ".wav" =>
+                    (MediaType.Audio, MediaRole.Audio),
+
+                // Documents
+                ".pdf" =>
+                    (MediaType.Document, MediaRole.Document),
+
+                _ => throw new ArgumentException(
+                    $"The file '{file.FileName}' has an unsupported file type.")
+            };
+        }
+
+
+        private async Task AddMediaAsync(
+                    IFormFile file,
+                    MediaType mediaType,
+                    MediaRole role,
+                    int contentItemId,
+                    int displayOrder,
+                    List<MediaAsset> savedAssets)
+                {
+                    // Save the physical file.
+                    MediaAsset asset = await _mediaStorage.SaveFileAsync(
+                        file,
+                        mediaType);
+
+                    // Keep track of the file for cleanup if something fails.
+                    savedAssets.Add(asset);
+
+                    // Register the media asset in the database.
+                    _context.MediaAssets.Add(asset);
+
+                    // Connect the media asset to its content item.
+                    _context.ContentMedia.Add(new ContentMedia
+                    {
+                        ContentItemId = contentItemId,
+                        MediaAsset = asset,
+                        Role = role,
+                        DisplayOrder = displayOrder
+                    });
+                }
 
         private string GenerateSlug(string title)
         {
@@ -646,8 +637,9 @@ namespace StefansDrumCorner.Web.Controllers
                 .Replace(slug, "-+", "-")
                 .Trim('-');
 
-            return string.IsNullOrWhiteSpace(slug) ? "content" : slug;
+            return string.IsNullOrWhiteSpace(slug)
+                ? "content"
+                : slug;
         }
-
     }
 }
