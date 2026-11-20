@@ -1,11 +1,11 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StefansDrumCorner.Web.Data;
 using StefansDrumCorner.Web.Models.Content;
 using StefansDrumCorner.Web.Services.Media;
-using Microsoft.AspNetCore.Http;
 
 namespace StefansDrumCorner.Web.Controllers
 {
@@ -27,12 +27,18 @@ namespace StefansDrumCorner.Web.Controllers
         // CONTENT MANAGER
         // =====================================================
 
+
         public async Task<IActionResult> Index(
             int? selectedId,
             int? categoryId,
-            ContentStatus? status)
+            ContentStatus? status,
+            bool create = false,
+            ContentItem? newContentItem = null,
+            bool newCategory = false,
+            int? editCategoryId = null,
+            bool showArchived = false)
         {
-            // Load active categories for the workspace browser.
+            // Load active categories for the workspace.
             var categories = await _context.ContentCategories
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.ParentCategoryId.HasValue)
@@ -40,62 +46,118 @@ namespace StefansDrumCorner.Web.Controllers
                 .ThenBy(c => c.DisplayOrder)
                 .ToListAsync();
 
-            // Start with all content items.
+            // Load archived categories when the archive view is requested.
+            var archivedCategories = await _context.ContentCategories
+                .Where(c =>
+                    !c.IsActive &&
+                    (c.ParentCategoryId == null ||
+                     c.ParentCategory!.IsActive))
+                .Include(c => c.ParentCategory)
+                .Include(c => c.SubCategories.Where(s => !s.IsActive))
+                .OrderBy(c => c.ParentCategoryId)
+                .ThenBy(c => c.DisplayOrder)
+                .ToListAsync();
+
+            // Load the category being edited, if any.
+            ContentCategory? categoryToEdit = null;
+
+            if (editCategoryId.HasValue)
+            {
+                categoryToEdit = await _context.ContentCategories
+                    .Include(c => c.Image)
+                    .FirstOrDefaultAsync(c => c.Id == editCategoryId.Value);
+
+                if (categoryToEdit == null)
+                {
+                    return NotFound();
+                }
+            }
+
+            // Load content items.
             var query = _context.ContentItems
                 .Include(c => c.Category)
                 .AsQueryable();
 
-            // Filter by category when one is selected.
             if (categoryId.HasValue)
             {
-                bool categoryExists = categories.Any(
+                var selectedCategory = categories.FirstOrDefault(
                     c => c.Id == categoryId.Value);
 
-                if (!categoryExists)
+                if (selectedCategory == null)
                 {
                     return NotFound();
                 }
 
-                query = query.Where(
-                    c => c.CategoryId == categoryId.Value);
+                if (selectedCategory.ParentCategoryId == null)
+                {
+                    var subcategoryIds = categories
+                        .Where(c => c.ParentCategoryId == selectedCategory.Id)
+                        .Select(c => c.Id)
+                        .ToList();
+
+                    query = query.Where(c =>
+                        c.CategoryId == selectedCategory.Id ||
+                        (c.CategoryId.HasValue &&
+                         subcategoryIds.Contains(c.CategoryId.Value)));
+                }
+                else
+                {
+                    query = query.Where(
+                        c => c.CategoryId == selectedCategory.Id);
+                }
             }
 
-            // Filter by publication status.
             if (status.HasValue)
             {
-                query = query.Where(
-                    c => c.Status == status.Value);
+                query = query.Where(c => c.Status == status.Value);
             }
 
-            // Get the filtered content list.
             var contentItems = await query
                 .OrderBy(c => c.DisplayOrder)
                 .ThenByDescending(c => c.CreatedAtUtc)
                 .ToListAsync();
 
-            // Keep the requested selection if it belongs
-            // to the current filtered list.
-            var selectedItemId = selectedId;
-
-            if (!selectedItemId.HasValue ||
-                !contentItems.Any(c => c.Id == selectedItemId.Value))
-            {
-                selectedItemId = contentItems.FirstOrDefault()?.Id;
-            }
-
             ContentItem? selectedItem = null;
 
-            if (selectedItemId.HasValue)
+            if (!create && !newCategory && !editCategoryId.HasValue && !showArchived)
             {
-                selectedItem = await _context.ContentItems
-                    .Include(c => c.Category)
-                        .ThenInclude(c => c!.ParentCategory)
-                    .Include(c => c.ContentMedia)
-                        .ThenInclude(m => m.MediaAsset)
-                    .FirstOrDefaultAsync(
-                        c => c.Id == selectedItemId.Value);
+                var selectedItemId = selectedId;
+
+                if (!selectedItemId.HasValue ||
+                    !contentItems.Any(c => c.Id == selectedItemId.Value))
+                {
+                    selectedItemId = contentItems.FirstOrDefault()?.Id;
+                }
+
+                if (selectedItemId.HasValue)
+                {
+                    selectedItem = await _context.ContentItems
+                        .Include(c => c.Category)
+                            .ThenInclude(c => c!.ParentCategory)
+                        .Include(c => c.ContentMedia)
+                            .ThenInclude(m => m.MediaAsset)
+                        .FirstOrDefaultAsync(
+                            c => c.Id == selectedItemId.Value);
+                }
             }
 
+            // Existing content form information.
+            ViewBag.CreateMode = create;
+
+            ViewBag.NewContentItem = newContentItem
+                ?? new ContentItem
+                {
+                    CategoryId = categoryId,
+                    Status = ContentStatus.Draft
+                };
+
+            // Category workspace information.
+            ViewBag.NewCategoryMode = newCategory;
+            ViewBag.EditCategory = categoryToEdit;
+            ViewBag.ShowArchivedCategories = showArchived;
+            ViewBag.ArchivedCategories = archivedCategories;
+
+            // Existing workspace information.
             ViewBag.SelectedItem = selectedItem;
             ViewBag.Categories = categories;
             ViewBag.SelectedCategoryId = categoryId;
@@ -103,6 +165,8 @@ namespace StefansDrumCorner.Web.Controllers
 
             return View(contentItems);
         }
+
+
 
         // =====================================================
         // EDIT CONTENT
@@ -127,6 +191,7 @@ namespace StefansDrumCorner.Web.Controllers
             return View(contentItem);
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
@@ -145,6 +210,9 @@ namespace StefansDrumCorner.Web.Controllers
             {
                 return NotFound();
             }
+
+            // Remember the original category.
+            int? originalCategoryId = contentItem.CategoryId;
 
             // Copy editable fields onto the existing database entity.
             contentItem.Title = input.Title?.Trim() ?? string.Empty;
@@ -167,7 +235,7 @@ namespace StefansDrumCorner.Web.Controllers
                 bool categoryExists = await _context.ContentCategories
                     .AnyAsync(c =>
                         c.Id == contentItem.CategoryId &&
-                        (c.IsActive || c.Id == input.CategoryId));
+                        (c.IsActive || c.Id == originalCategoryId));
 
                 if (!categoryExists)
                 {
@@ -209,10 +277,12 @@ namespace StefansDrumCorner.Web.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = await LoadCategoriesAsync(
-                    contentItem.CategoryId);
-
-                return View(contentItem);
+                // Return to the Content Manager with the submitted values.
+                return await Index(
+                    selectedId: id,
+                    categoryId: contentItem.CategoryId,
+                    status: null,
+                    create: false);
             }
 
             // Set server-controlled update information.
@@ -233,7 +303,6 @@ namespace StefansDrumCorner.Web.Controllers
 
             try
             {
-
                 // Start with attachments explicitly selected for removal.
                 var attachmentsToRemove = new List<ContentMedia>(
                     selectedAttachments);
@@ -255,17 +324,19 @@ namespace StefansDrumCorner.Web.Controllers
                         group => group.Key,
                         group => group.Max(cm => cm.DisplayOrder) + 1);
 
-                
                 // Process all newly uploaded files.
                 foreach (var file in mediaFiles ?? new List<IFormFile>())
                 {
                     if (file == null || file.Length == 0)
+                    {
                         continue;
+                    }
 
                     var classification = GetMediaClassification(file);
 
                     if (!nextOrderByRole.TryGetValue(
-                        classification.Role, out int displayOrder))
+                        classification.Role,
+                        out int displayOrder))
                     {
                         displayOrder = 0;
                     }
@@ -333,20 +404,17 @@ namespace StefansDrumCorner.Web.Controllers
                     await _mediaStorage.DeleteFileAsync(asset.StorageKey);
                 }
 
-                // Reload the content and its existing attachments.
+                // Reload the database state.
                 _context.ChangeTracker.Clear();
-
-                contentItem = await _context.ContentItems
-                    .Include(c => c.ContentMedia)
-                        .ThenInclude(cm => cm.MediaAsset)
-                    .FirstAsync(c => c.Id == id);
 
                 ModelState.AddModelError(string.Empty, ex.Message);
 
-                ViewBag.Categories = await LoadCategoriesAsync(
-                    contentItem.CategoryId);
-
-                return View(contentItem);
+                // Return to the Content Manager with the existing item selected.
+                return await Index(
+                    selectedId: id,
+                    categoryId: contentItem.CategoryId,
+                    status: null,
+                    create: false);
             }
             catch
             {
@@ -362,6 +430,10 @@ namespace StefansDrumCorner.Web.Controllers
             }
         }
 
+
+        // =====================================================
+        // REMOVE MEDIA
+        // =====================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -444,8 +516,6 @@ namespace StefansDrumCorner.Web.Controllers
 
         public async Task<IActionResult> Create(int? categoryId)
         {
-            ViewBag.Categories = await LoadCategoriesAsync();
-
             if (categoryId.HasValue)
             {
                 bool categoryExists = await _context.ContentCategories
@@ -459,9 +529,10 @@ namespace StefansDrumCorner.Web.Controllers
                 }
             }
 
-            ViewBag.SelectedCategoryId = categoryId;
-
-            return View();
+            // Open the new content form inside the Content Manager.
+            return RedirectToAction(
+                nameof(Index),
+                new { categoryId, create = true });
         }
 
 
@@ -469,7 +540,7 @@ namespace StefansDrumCorner.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("Title,Description,CategoryId,ContentType,Status,DisplayOrder,IsFeatured")]
-    ContentItem contentItem,
+            ContentItem contentItem,
             List<IFormFile>? mediaFiles)
         {
             // Validate required fields.
@@ -512,8 +583,13 @@ namespace StefansDrumCorner.Web.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = await LoadCategoriesAsync();
-                return View(contentItem);
+                // Return to the Content Manager with the new content form open.
+                return await Index(
+                    selectedId: null,
+                    categoryId: contentItem.CategoryId,
+                    status: null,
+                    create: true,
+                    newContentItem: contentItem);
             }
 
             // Clean up submitted values.
@@ -603,11 +679,18 @@ namespace StefansDrumCorner.Web.Controllers
                     await _mediaStorage.DeleteFileAsync(asset.StorageKey);
                 }
 
+                // Clear entities from the rolled-back transaction.
+                _context.ChangeTracker.Clear();
+
                 ModelState.AddModelError(string.Empty, ex.Message);
 
-                ViewBag.Categories = await LoadCategoriesAsync();
-
-                return View(contentItem);
+                // Return to the Content Manager with the submitted values.
+                return await Index(
+                    selectedId: null,
+                    categoryId: contentItem.CategoryId,
+                    status: null,
+                    create: true,
+                    newContentItem: contentItem);
             }
             catch
             {
@@ -674,33 +757,34 @@ namespace StefansDrumCorner.Web.Controllers
 
 
         private async Task AddMediaAsync(
-                    IFormFile file,
-                    MediaType mediaType,
-                    MediaRole role,
-                    int contentItemId,
-                    int displayOrder,
-                    List<MediaAsset> savedAssets)
-                {
-                    // Save the physical file.
-                    MediaAsset asset = await _mediaStorage.SaveFileAsync(
-                        file,
-                        mediaType);
+            IFormFile file,
+            MediaType mediaType,
+            MediaRole role,
+            int contentItemId,
+            int displayOrder,
+            List<MediaAsset> savedAssets)
+        {
+            // Save the physical file.
+            MediaAsset asset = await _mediaStorage.SaveFileAsync(
+                file,
+                mediaType);
 
-                    // Keep track of the file for cleanup if something fails.
-                    savedAssets.Add(asset);
+            // Keep track of the file for cleanup if something fails.
+            savedAssets.Add(asset);
 
-                    // Register the media asset in the database.
-                    _context.MediaAssets.Add(asset);
+            // Register the media asset in the database.
+            _context.MediaAssets.Add(asset);
 
-                    // Connect the media asset to its content item.
-                    _context.ContentMedia.Add(new ContentMedia
-                    {
-                        ContentItemId = contentItemId,
-                        MediaAsset = asset,
-                        Role = role,
-                        DisplayOrder = displayOrder
-                    });
-                }
+            // Connect the media asset to its content item.
+            _context.ContentMedia.Add(new ContentMedia
+            {
+                ContentItemId = contentItemId,
+                MediaAsset = asset,
+                Role = role,
+                DisplayOrder = displayOrder
+            });
+        }
+
 
         private string GenerateSlug(string title)
         {

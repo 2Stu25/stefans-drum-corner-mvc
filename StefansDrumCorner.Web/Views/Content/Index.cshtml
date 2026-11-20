@@ -7,6 +7,18 @@
 
     var selectedItem = ViewBag.SelectedItem as ContentItem;
 
+    var newContentItem = ViewBag.NewContentItem as ContentItem
+        ?? new ContentItem();
+
+    bool createMode = ViewBag.CreateMode is bool mode && mode;
+    bool newCategoryMode = ViewBag.NewCategoryMode is bool newMode && newMode;
+    bool showArchivedCategories = ViewBag.ShowArchivedCategories is bool archivedMode && archivedMode;
+
+    var editCategory = ViewBag.EditCategory as ContentCategory;
+
+    var archivedCategories = ViewBag.ArchivedCategories as List<ContentCategory>
+        ?? new List<ContentCategory>();
+
     var categories = ViewBag.Categories as List<ContentCategory>
         ?? new List<ContentCategory>();
 
@@ -23,12 +35,16 @@
     var selectedCategory = categories.FirstOrDefault(
         c => c.Id == selectedCategoryId);
 
-    var selectedParentId = selectedCategory?.ParentCategoryId;
-
     var categoryHeading = selectedCategory?.Name ?? "ALL CONTENT";
 
     var itemCount = Model?.Count ?? 0;
+
+    var newCategory = ViewBag.NewCategory as ContentCategory
+    ?? new ContentCategory();
+
+    bool categoryFormMode = newCategoryMode || editCategory != null;
 }
+
 
 <div class="cm-workspace">
 
@@ -54,8 +70,7 @@
 
         <nav class="cm-top-menu">
 
-            <a asp-controller="Content"
-               asp-action="Index">
+            <a asp-controller="Content" asp-action="Index">
                 File
             </a>
 
@@ -65,8 +80,9 @@
                 Content
             </a>
 
-            <a asp-controller="Categories"
-               asp-action="Create">
+            <a asp-controller="Content"
+               asp-action="Index"
+               asp-route-newCategory="true">
                 Categories
             </a>
 
@@ -100,14 +116,16 @@
 
             <div class="cm-category-actions">
 
-                <a asp-controller="Categories"
-                   asp-action="Create"
+                <a asp-controller="Content"
+                   asp-action="Index"
+                   asp-route-newCategory="true"
                    class="cm-category-create">
                     + NEW CATEGORY
                 </a>
 
-                <a asp-controller="Categories"
-                   asp-action="Archived"
+                <a asp-controller="Content"
+                   asp-action="Index"
+                   asp-route-showArchived="true"
                    class="cm-category-action">
                     ARCHIVE
                 </a>
@@ -118,8 +136,7 @@
             <!-- ALL CONTENT -->
             <a asp-controller="Content"
                asp-action="Index"
-               asp-route-status=""
-               class="cm-category-link cm-all-content-link @(selectedCategoryId == null && string.IsNullOrEmpty(selectedStatus) ? "cm-category-selected" : "")">
+               class="cm-category-link cm-all-content-link @(selectedCategoryId == null && string.IsNullOrEmpty(selectedStatus) && !showArchivedCategories ? "cm-category-selected" : "")">
 
                 <span class="cm-category-link-name">
                     All content
@@ -157,9 +174,16 @@
 
                             <span class="cm-category-chevron"></span>
 
-                            <span class="cm-category-name">
+                            <a asp-controller="Content"
+                               asp-action="Index"
+                               asp-route-categoryId="@root.Id"
+                               asp-route-status="@selectedStatus"
+                               class="cm-category-name @(isRootSelected ? "cm-category-selected" : "")"
+                               onclick="event.stopPropagation();">
+
                                 @root.Name
-                            </span>
+
+                            </a>
 
                             <span class="cm-category-count">
                                 @children.Count
@@ -167,23 +191,8 @@
 
                         </summary>
 
-
                         <div class="cm-category-subcategories">
 
-                            <!-- ROOT CATEGORY -->
-                            <a asp-controller="Content"
-                               asp-action="Index"
-                               asp-route-categoryId="@root.Id"
-                               class="cm-subcategory-link cm-root-category-link @(isRootSelected ? "cm-category-selected" : "")">
-
-                                <span class="cm-category-link-name">
-                                    All @root.Name
-                                </span>
-
-                            </a>
-
-
-                            <!-- SUBCATEGORIES -->
                             @foreach (var child in children)
                             {
                                 var isSelected = selectedCategoryId == child.Id;
@@ -191,6 +200,7 @@
                                 <a asp-controller="Content"
                                    asp-action="Index"
                                    asp-route-categoryId="@child.Id"
+                                   asp-route-status="@selectedStatus"
                                    class="cm-subcategory-link @(isSelected ? "cm-category-selected" : "")">
 
                                     <span class="cm-category-link-name">
@@ -199,36 +209,6 @@
 
                                 </a>
                             }
-
-                        </div>
-
-
-                        <!-- CATEGORY MANAGEMENT -->
-                        <div class="cm-category-management">
-
-                            <a asp-controller="Categories"
-                               asp-action="Edit"
-                               asp-route-id="@root.Id"
-                               class="cm-category-action">
-                                EDIT
-                            </a>
-
-                            <form asp-controller="Categories"
-                                  asp-action="Archive"
-                                  method="post"
-                                  class="cm-category-archive-form"
-                                  onsubmit="return confirm('Archive this category?');">
-
-                                <input type="hidden"
-                                       name="id"
-                                       value="@root.Id" />
-
-                                <button type="submit"
-                                        class="cm-category-action">
-                                    ARCHIVE
-                                </button>
-
-                            </form>
 
                         </div>
 
@@ -252,7 +232,7 @@
                    asp-action="Index"
                    asp-route-categoryId="@selectedCategoryId"
                    asp-route-status=""
-                   class="cm-nav-item @(string.IsNullOrEmpty(selectedStatus) ? "cm-filter-active" : "")">
+                   class="cm-nav-item @(string.IsNullOrEmpty(selectedStatus) && !showArchivedCategories ? "cm-filter-active" : "")">
 
                     <span>All</span>
 
@@ -286,122 +266,850 @@
 
 
 
-        <!-- MIDDLE PANEL: CONTENT LIST -->
+        <!-- MIDDLE PANEL -->
         <section class="cm-content-panel">
 
-            <div class="cm-panel-heading">
+            @if (showArchivedCategories)
+            {
+                <!-- ARCHIVED CATEGORIES -->
 
-                <div class="cm-panel-heading-main">
+                <div class="cm-panel-heading">
 
-                    <div class="cm-panel-section-label">
-                        CONTENT LIBRARY
+                    <div class="cm-panel-heading-main">
+
+                        <div class="cm-panel-section-label">
+                            WORKSPACE
+                        </div>
+
+                        <h2 class="cm-panel-title">
+                            CATEGORY ARCHIVE
+                        </h2>
+
+                        <div class="cm-panel-description">
+                            @archivedCategories.Count @(archivedCategories.Count == 1 ? "archived category" : "archived categories")
+                        </div>
+
                     </div>
 
-                    <h2 class="cm-panel-title">
-                        @categoryHeading
-                    </h2>
-
-                    <div class="cm-panel-description">
-                        @itemCount @(itemCount == 1 ? "item" : "items")
-                    </div>
+                    <a asp-controller="Content"
+                       asp-action="Index"
+                       class="cm-new-button">
+                        BACK TO CONTENT
+                    </a>
 
                 </div>
 
 
-                <a asp-controller="Content"
-                   asp-action="Create"
-                   asp-route-categoryId="@selectedCategoryId"
-                   class="cm-new-button">
-                    + NEW
-                </a>
+                <div class="cm-content-list">
 
-            </div>
-
-
-            <!-- CONTENT LIST -->
-            <div class="cm-content-list">
-
-                @if (Model != null && Model.Any())
-                {
-                    @foreach (var item in Model)
+                    @if (archivedCategories.Any())
                     {
-                        var isSelected = selectedItem?.Id == item.Id;
+                        @foreach (var archived in archivedCategories)
+                        {
+                            <div class="cm-content-item">
 
-                        var itemCategory = categories.FirstOrDefault(
-                            c => c.Id == item.CategoryId);
+                                <div class="cm-item-main">
 
-                        <a asp-controller="Content"
-                           asp-action="Index"
-                           asp-route-selectedId="@item.Id"
-                           asp-route-categoryId="@selectedCategoryId"
-                           asp-route-status="@selectedStatus"
-                           class="cm-content-item @(isSelected ? "cm-content-item-selected" : "")">
+                                    <div class="cm-item-title">
+                                        @archived.Name
+                                    </div>
 
-                            <div class="cm-item-main">
+                                    <div class="cm-item-category">
+                                        @(archived.ParentCategory?.Name ?? "Main category")
+                                    </div>
 
-                                <div class="cm-item-title">
-                                    @item.Title
                                 </div>
 
-                                <div class="cm-item-category">
-                                    @(itemCategory?.Name ?? "Uncategorised")
+                                <div class="cm-item-meta">
+
+                                    <form asp-controller="Categories"
+                                          asp-action="Restore"
+                                          method="post">
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@archived.Id" />
+
+                                        <button type="submit"
+                                                class="cm-save-button">
+                                            RESTORE
+                                        </button>
+
+                                    </form>
+
+                                    <form asp-controller="Categories"
+                                          asp-action="Delete"
+                                          method="post"
+                                          onsubmit="return confirm('Permanently delete this category? This cannot be undone.');">
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@archived.Id" />
+
+                                        <button type="submit"
+                                                class="cm-remove-media-button">
+                                            DELETE
+                                        </button>
+
+                                    </form>
+
                                 </div>
 
                             </div>
 
+                            @foreach (var child in archived.SubCategories
+                                .Where(c => !c.IsActive)
+                                .OrderBy(c => c.DisplayOrder))
+                            {
+                                <div class="cm-content-item">
 
-                            <div class="cm-item-meta">
+                                    <div class="cm-item-main">
 
-                                <span class="cm-status cm-status-@item.Status.ToString().ToLowerInvariant()">
+                                        <div class="cm-item-title">
+                                            &nbsp;&nbsp;↳ @child.Name
+                                        </div>
 
-                                    <span class="cm-status-dot"></span>
+                                        <div class="cm-item-category">
+                                            Subcategory of @archived.Name
+                                        </div>
 
-                                    @item.Status
+                                    </div>
 
-                                </span>
+                                    <div class="cm-item-meta">
 
-                                <span class="cm-item-chevron">
-                                    ›
-                                </span>
+                                        <form asp-controller="Categories"
+                                              asp-action="Restore"
+                                              method="post">
 
-                            </div>
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@child.Id" />
 
-                        </a>
+                                            <button type="submit"
+                                                    class="cm-save-button">
+                                                RESTORE
+                                            </button>
+
+                                        </form>
+
+                                        <form asp-controller="Categories"
+                                              asp-action="Delete"
+                                              method="post"
+                                              onsubmit="return confirm('Permanently delete this category? This cannot be undone.');">
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@child.Id" />
+
+                                            <button type="submit"
+                                                    class="cm-remove-media-button">
+                                                DELETE
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+                            }
+                        }
                     }
-                }
-                else
-                {
-                    <div class="cm-empty">
+                    else
+                    {
+                        <div class="cm-empty">
 
-                        <div class="cm-empty-title">
-                            No content found
+                            <div class="cm-empty-title">
+                                Archive is empty
+                            </div>
+
+                            <p>
+                                Archived categories will appear here.
+                            </p>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <!-- NORMAL CONTENT VIEW -->
+
+                <div class="cm-panel-heading">
+
+                    <div class="cm-panel-heading-main">
+
+                        <div class="cm-panel-section-label">
+                            CONTENT
                         </div>
 
-                        <p>
-                            There are no content items matching this selection.
-                        </p>
+                        @if (selectedCategory != null)
+                        {
+                            <a asp-controller="Content"
+                               asp-action="Index"
+                               asp-route-editCategoryId="@selectedCategory.Id"
+                               asp-route-categoryId="@selectedCategory.Id"
+                               class="cm-panel-title">
 
+                                @categoryHeading
+
+                            </a>
+                        }
+                        else
+                        {
+                            <h2 class="cm-panel-title">
+                                @categoryHeading
+                            </h2>
+                        }
+
+                        <div class="cm-panel-description">
+                            @itemCount @(itemCount == 1 ? "item" : "items")
+                        </div>
+
+                    </div>
+
+
+                    @if (!categoryFormMode)
+                    {
                         <a asp-controller="Content"
-                           asp-action="Create"
+                           asp-action="Index"
+                           asp-route-create="true"
                            asp-route-categoryId="@selectedCategoryId"
                            class="cm-new-button">
                             + CREATE CONTENT
                         </a>
+                    }
 
-                    </div>
-                }
+                </div>
 
-            </div>
+
+                <!-- CONTENT LIST -->
+                <div class="cm-content-list">
+
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var isSelected = !createMode &&
+                                selectedItem?.Id == item.Id;
+
+                            var itemCategory = categories.FirstOrDefault(
+                                c => c.Id == item.CategoryId);
+
+                            <a asp-controller="Content"
+                               asp-action="Index"
+                               asp-route-selectedId="@item.Id"
+                               asp-route-categoryId="@selectedCategoryId"
+                               asp-route-status="@selectedStatus"
+                               class="cm-content-item @(isSelected ? "cm-content-item-selected" : "")">
+
+                                <div class="cm-item-main">
+
+                                    <div class="cm-item-title">
+                                        @item.Title
+                                    </div>
+
+                                    <div class="cm-item-category">
+                                        @(itemCategory?.Name ?? "Uncategorised")
+                                    </div>
+
+                                </div>
+
+                                <div class="cm-item-meta">
+
+                                    <span class="cm-status cm-status-@item.Status.ToString().ToLowerInvariant()">
+
+                                        <span class="cm-status-dot"></span>
+
+                                        @item.Status
+
+                                    </span>
+
+                                    <span class="cm-item-chevron">
+                                        ›
+                                    </span>
+
+                                </div>
+
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <div class="cm-empty">
+
+                            <div class="cm-empty-title">
+                                No content found
+                            </div>
+
+                            <p>
+                                There are no content items matching this selection.
+                            </p>
+
+                        </div>
+                    }
+
+                </div>
+            }
 
         </section>
 
 
 
-        <!-- RIGHT PANEL: PROPERTIES -->
+        <!-- RIGHT PANEL -->
         <section class="cm-properties-panel">
 
-            @if (selectedItem != null)
+
+            @if (newCategoryMode)
             {
+                <!-- NEW CATEGORY FORM -->
+
+                <form asp-controller="Categories"
+                      asp-action="Create"
+                      method="post"
+                      enctype="multipart/form-data"
+                      class="cm-properties-form">
+
+                    <div class="cm-properties-header">
+
+                        <div>
+                            <div class="cm-panel-section-label">
+                                CATEGORY MANAGER
+                            </div>
+
+                            <h2 class="cm-properties-title">
+                                NEW CATEGORY
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div asp-validation-summary="All"
+                         class="cm-validation-summary">
+                    </div>
+
+
+                    <div class="cm-property-section">
+
+                        <div class="cm-property-section-heading">
+                            GENERAL
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Name">
+                                CATEGORY NAME
+                            </label>
+
+                            <input type="text"
+                               id="Name"
+                               name="Name"
+                               value="@newCategory.Name"
+                               required />
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Subtitle">
+                                SUBTITLE
+                            </label>
+
+                            <input type="text"
+                               id="Subtitle"
+                               name="Subtitle"
+                               value="@newCategory.Subtitle" />
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Description">
+                                DESCRIPTION
+                            </label>
+
+                            <textarea id="Description"
+                                  name="Description"
+                                  rows="5">@newCategory.Description</textarea>
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="ParentCategoryId">
+                                PARENT CATEGORY
+                            </label>
+
+                            <select id="ParentCategoryId"
+                                    name="ParentCategoryId">
+
+                                <option value="">
+                                    Main category
+                                </option>
+
+                                @foreach (var root in rootCategories)
+                                {
+                                    <option value="@root.Id"
+                                            selected="@(newCategory.ParentCategoryId == root.Id ? "selected" : null)">
+                                        @root.Name
+                                    </option>
+                                }
+
+                            </select>
+
+                            <small>
+                                Leave this empty to create a main category.
+                                Select a main category to create a subcategory.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="cm-property-section">
+
+                        <div class="cm-property-section-heading">
+                            CATEGORY IMAGE
+                        </div>
+
+                        <div class="cm-field">
+
+                            <label for="imageFile">
+                                UPLOAD IMAGE
+                            </label>
+
+                            <input type="file"
+                                   id="imageFile"
+                                   name="imageFile"
+                                   accept=".jpg,.jpeg,.png,.webp" />
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="cm-featured-field">
+                        <label>
+                            <input type="checkbox"
+                               name="IsActive"
+                               value="true"
+                               checked="@newCategory.IsActive" />
+
+                            <span>ACTIVE CATEGORY</span>
+                        </label>
+                    </div>
+
+                    <input type="hidden" name="IsActive" value="false" />
+
+
+                    <div class="cm-category-form-actions">
+
+                        <a asp-controller="Content"
+                           asp-action="Index"
+                           class="cm-cancel-button">
+                            CANCEL
+                        </a>
+
+                        <button type="submit"
+                                class="cm-save-button">
+                            CREATE CATEGORY
+                        </button>
+
+                    </div>
+
+                </form>
+            }
+
+            else if (editCategory != null)
+            {
+                <!-- EDIT CATEGORY FORM -->
+
+                <form asp-controller="Categories"
+                      asp-action="Edit"
+                      asp-route-id="@editCategory.Id"
+                      method="post"
+                      enctype="multipart/form-data"
+                      class="cm-properties-form">
+
+                    <input type="hidden"
+                           name="Id"
+                           value="@editCategory.Id" />
+
+
+                    <div class="cm-properties-header">
+
+                        <div>
+                            <div class="cm-panel-section-label">
+                                CATEGORY MANAGER
+                            </div>
+
+                            <h2 class="cm-properties-title">
+                                EDIT CATEGORY
+                            </h2>
+                        </div>
+
+                        <span class="cm-item-number">
+                            #@editCategory.Id
+                        </span>
+
+                    </div>
+
+
+                    <div asp-validation-summary="All"
+                         class="cm-validation-summary">
+                    </div>
+
+
+                    <div class="cm-property-section">
+
+                        <div class="cm-property-section-heading">
+                            GENERAL
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Name">
+                                CATEGORY NAME
+                            </label>
+
+                            <input type="text"
+                                   id="Name"
+                                   name="Name"
+                                   value="@editCategory.Name"
+                                   required />
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Subtitle">
+                                SUBTITLE
+                            </label>
+
+                            <input type="text"
+                                   id="Subtitle"
+                                   name="Subtitle"
+                                   value="@editCategory.Subtitle" />
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Description">
+                                DESCRIPTION
+                            </label>
+
+                            <textarea id="Description"
+                                      name="Description"
+                                      rows="5">@editCategory.Description</textarea>
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="ParentCategoryId">
+                                PARENT CATEGORY
+                            </label>
+
+                            <select id="ParentCategoryId"
+                                    name="ParentCategoryId">
+
+                                <option value="">
+                                    Main category
+                                </option>
+
+                                @foreach (var root in rootCategories.Where(c => c.Id != editCategory.Id))
+                                {
+                                    <option value="@root.Id"
+                                            selected="@(editCategory.ParentCategoryId == root.Id ? "selected" : null)">
+                                        @root.Name
+                                    </option>
+                                }
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="cm-property-section">
+
+                        <div class="cm-property-section-heading">
+                            CATEGORY IMAGE
+                        </div>
+
+                        @if (editCategory.Image != null)
+                        {
+                            <div class="cm-field">
+
+                                <img src="@Url.Content("~/" + editCategory.Image.StorageKey)"
+                                     alt="@editCategory.Name"
+                                     style="max-width: 100%; max-height: 140px; object-fit: cover;" />
+
+                                <label>
+                                    <input type="checkbox"
+                                           name="removeImage"
+                                           value="true" />
+
+                                    REMOVE CURRENT IMAGE
+                                </label>
+
+                            </div>
+                        }
+
+                        <div class="cm-field">
+
+                            <label for="imageFile">
+                                @(editCategory.Image == null ? "UPLOAD IMAGE" : "REPLACE IMAGE")
+                            </label>
+
+                            <input type="file"
+                                   id="imageFile"
+                                   name="imageFile"
+                                   accept=".jpg,.jpeg,.png,.webp" />
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="cm-property-section">
+
+                        <div class="cm-featured-field">
+
+                            <label>
+                                <input type="checkbox"
+                                       name="IsActive"
+                                       value="true"
+                                       checked="@editCategory.IsActive" />
+
+                                <span>ACTIVE CATEGORY</span>
+                            </label>
+
+                        </div>
+
+                        <input type="hidden"
+                               name="IsActive"
+                               value="false" />
+
+                    </div>
+
+
+                    <div class="cm-category-form-actions">
+
+                        <a asp-controller="Content"
+                           asp-action="Index"
+                           asp-route-categoryId="@editCategory.Id"
+                           class="cm-cancel-button">
+                            CANCEL
+                        </a>
+
+                        <button type="submit"
+                                class="cm-save-button">
+                            SAVE CATEGORY
+                        </button>
+
+                    </div>
+
+                </form>
+            }
+
+            else if (createMode)
+            {
+                <!-- NEW CONTENT FORM -->
+
+                <form id="createContentForm"
+                      asp-controller="Content"
+                      asp-action="Create"
+                      method="post"
+                      enctype="multipart/form-data"
+                      class="cm-properties-form">
+
+                    <div class="cm-properties-header">
+
+                        <div>
+                            <div class="cm-panel-section-label">
+                                CONTENT MANAGER
+                            </div>
+
+                            <h2 class="cm-properties-title">
+                                NEW CONTENT
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div asp-validation-summary="All"
+                         class="cm-validation-summary">
+                    </div>
+
+
+                    <div class="cm-property-section">
+
+                        <div class="cm-property-section-heading">
+                            GENERAL
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Title">
+                                TITLE
+                            </label>
+
+                            <input type="text"
+                                   id="Title"
+                                   name="Title"
+                                   value="@newContentItem.Title"
+                                   required />
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="CategoryId">
+                                CATEGORY
+                            </label>
+
+                            <select id="CategoryId"
+                                    name="CategoryId">
+
+                                <option value="">
+                                    Select category
+                                </option>
+
+                                @foreach (var root in rootCategories)
+                                {
+                                    <option value="@root.Id"
+                                            selected="@(newContentItem.CategoryId == root.Id ? "selected" : null)">
+                                        @root.Name
+                                    </option>
+
+                                    var children = categories
+                                        .Where(c => c.ParentCategoryId == root.Id)
+                                        .OrderBy(c => c.DisplayOrder)
+                                        .ThenBy(c => c.Name)
+                                        .ToList();
+
+                                    foreach (var child in children)
+                                    {
+                                        <option value="@child.Id"
+                                                selected="@(newContentItem.CategoryId == child.Id ? "selected" : null)">
+                                            @root.Name / @child.Name
+                                        </option>
+                                    }
+                                }
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="Description">
+                                DESCRIPTION
+                            </label>
+
+                            <textarea id="Description"
+                                      name="Description"
+                                      rows="5">@newContentItem.Description</textarea>
+
+                        </div>
+
+
+                        <div class="cm-field">
+
+                            <label for="DisplayOrder">
+                                DISPLAY ORDER
+                            </label>
+
+                            <input type="number"
+                                   id="DisplayOrder"
+                                   name="DisplayOrder"
+                                   value="@newContentItem.DisplayOrder"
+                                   min="0" />
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="cm-property-section">
+
+                        <div class="cm-property-section-heading">
+                            PUBLICATION
+                        </div>
+
+
+                        <div class="cm-publication-controls">
+
+                            <div class="cm-field cm-status-field">
+
+                                <label for="Status">
+                                    STATUS
+                                </label>
+
+                                <select id="Status"
+                                        name="Status">
+
+                                    @foreach (ContentStatus status in Enum.GetValues(typeof(ContentStatus)))
+                                    {
+                                        <option value="@status"
+                                                selected="@(newContentItem.Status == status ? "selected" : null)">
+                                            @status
+                                        </option>
+                                    }
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="cm-featured-field">
+
+                                <input type="hidden"
+                                       name="IsFeatured"
+                                       value="false" />
+
+                                <label for="IsFeatured">
+
+                                    <input type="checkbox"
+                                           id="IsFeatured"
+                                           name="IsFeatured"
+                                           value="true"
+                                           checked="@newContentItem.IsFeatured" />
+
+                                    <span>FEATURED CONTENT</span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </form>
+            }
+
+            else if (selectedItem != null)
+            {
+                <!-- EDIT EXISTING CONTENT FORM -->
+
                 <form id="editContentForm"
                       asp-controller="Content"
                       asp-action="Edit"
@@ -415,12 +1123,11 @@
                            value="@selectedItem.Id" />
 
 
-                    <!-- PROPERTIES HEADER -->
                     <div class="cm-properties-header">
 
                         <div>
                             <div class="cm-panel-section-label">
-                                ITEM PROPERTIES
+                                CONTENT MANAGER
                             </div>
 
                             <h2 class="cm-properties-title">
@@ -435,7 +1142,11 @@
                     </div>
 
 
-                    <!-- GENERAL INFORMATION -->
+                    <div asp-validation-summary="All"
+                         class="cm-validation-summary">
+                    </div>
+
+
                     <div class="cm-property-section">
 
                         <div class="cm-property-section-heading">
@@ -474,10 +1185,8 @@
 
                                 @foreach (var root in rootCategories)
                                 {
-                                    var rootSelected = selectedItem.CategoryId == root.Id;
-
                                     <option value="@root.Id"
-                                            selected="@(rootSelected ? "selected" : null)">
+                                            selected="@(selectedItem.CategoryId == root.Id ? "selected" : null)">
                                         @root.Name
                                     </option>
 
@@ -489,10 +1198,8 @@
 
                                     foreach (var child in children)
                                     {
-                                        var childSelected = selectedItem.CategoryId == child.Id;
-
                                         <option value="@child.Id"
-                                                selected="@(childSelected ? "selected" : null)">
+                                                selected="@(selectedItem.CategoryId == child.Id ? "selected" : null)">
                                             @root.Name / @child.Name
                                         </option>
                                     }
@@ -525,15 +1232,14 @@
                             <input type="number"
                                    id="DisplayOrder"
                                    name="DisplayOrder"
-                                   value="@selectedItem.DisplayOrder" />
+                                   value="@selectedItem.DisplayOrder"
+                                   min="0" />
 
                         </div>
 
                     </div>
 
 
-
-                    <!-- PUBLICATION SETTINGS -->
                     <div class="cm-property-section">
 
                         <div class="cm-property-section-heading">
@@ -563,7 +1269,6 @@
                                 </select>
 
                             </div>
-                           
 
 
                             <div class="cm-featured-field">
@@ -573,6 +1278,7 @@
                                        value="false" />
 
                                 <label for="IsFeatured">
+
                                     <input type="checkbox"
                                            id="IsFeatured"
                                            name="IsFeatured"
@@ -580,6 +1286,7 @@
                                            checked="@selectedItem.IsFeatured" />
 
                                     <span>FEATURED CONTENT</span>
+
                                 </label>
 
                             </div>
@@ -587,11 +1294,10 @@
                         </div>
 
                     </div>
-             
 
                 </form>
-
             }
+
             else
             {
                 <div class="cm-no-selection">
@@ -608,154 +1314,179 @@
             }
 
         </section>
-     @if (selectedItem != null)
-    {
-        <!-- FULL WIDTH MEDIA FOOTER -->
-        <section class="cm-media-footer">
 
-            <!-- EXISTING ATTACHMENTS -->
-            <div class="cm-media-footer-existing">
 
-                <div class="cm-media-footer-heading">
-    ATTACHED MEDIA
-</div>
 
-@if (selectedItem.ContentMedia != null &&
-     selectedItem.ContentMedia.Any())
-{
-    <div class="cm-media-footer-list">
-
-        @foreach (var media in selectedItem.ContentMedia)
+        @if (selectedItem != null || createMode)
         {
-            <div class="cm-media-footer-row">
+            <!-- FULL WIDTH MEDIA FOOTER -->
+            <section class="cm-media-footer">
 
-                <span class="cm-media-role">
-                    @media.Role:
-                </span>
 
-                <span class="cm-media-filename">
-                    @media.MediaAsset?.OriginalFileName
-                </span>
+                <!-- EXISTING ATTACHMENTS -->
+                <div class="cm-media-footer-existing">
 
-                <span class="cm-media-details">
-                    @media.MediaAsset?.MediaType
+                    <div class="cm-media-footer-heading">
+                        ATTACHED MEDIA
+                    </div>
 
-                    @if (media.MediaAsset != null)
+                    @if (selectedItem != null &&
+                         selectedItem.ContentMedia != null &&
+                         selectedItem.ContentMedia.Any())
                     {
-                        <text> · @((media.MediaAsset.FileSizeBytes / 1024.0).ToString("N0")) KB</text>
-                    }
-                </span>
+                        <div class="cm-media-footer-list">
 
-                <form asp-controller="Content"
-                      asp-action="RemoveMedia"
-                      method="post"
-                      class="cm-remove-media-form">
+                            @foreach (var media in selectedItem.ContentMedia)
+                            {
+                                <div class="cm-media-footer-row">
 
-                    <input type="hidden"
-                           name="contentItemId"
-                           value="@selectedItem.Id" />
+                                    <span class="cm-media-role">
+                                        @media.Role:
+                                    </span>
 
-                    <input type="hidden"
-                           name="mediaId"
-                           value="@media.Id" />
+                                    <span class="cm-media-filename">
+                                        @media.MediaAsset?.OriginalFileName
+                                    </span>
 
-                    <details class="cm-remove-confirm">
+                                    <span class="cm-media-details">
+                                        @media.MediaAsset?.MediaType
 
-                        <summary class="cm-remove-media-button">
-                            REMOVE
-                        </summary>
+                                        @if (media.MediaAsset != null)
+                                        {
+                                            <text> · @((media.MediaAsset.FileSizeBytes / 1024.0).ToString("N0")) KB</text>
+                                        }
+                                    </span>
 
-                        <div class="cm-remove-confirm-panel">
-                            <span>Remove this attachment?</span>
 
-                            <div class="cm-remove-confirm-actions">
-                                <button type="button"
-                                        class="cm-remove-cancel"
-                                        onclick="this.closest('details').open = false">
-                                    CANCEL
-                                </button>
+                                    <form asp-controller="Content"
+                                          asp-action="RemoveMedia"
+                                          method="post"
+                                          class="cm-remove-media-form">
 
-                                <button type="submit"
-                                        class="cm-remove-confirm-button">
-                                    CONFIRM REMOVE
-                                </button>
-                            </div>
+                                        <input type="hidden"
+                                               name="contentItemId"
+                                               value="@selectedItem.Id" />
+
+                                        <input type="hidden"
+                                               name="mediaId"
+                                               value="@media.Id" />
+
+                                        <details class="cm-remove-confirm">
+
+                                            <summary class="cm-remove-media-button">
+                                                REMOVE
+                                            </summary>
+
+                                            <div class="cm-remove-confirm-panel">
+
+                                                <span>
+                                                    Remove this attachment?
+                                                </span>
+
+                                                <div class="cm-remove-confirm-actions">
+
+                                                    <button type="button"
+                                                            class="cm-remove-cancel"
+                                                            onclick="this.closest('details').open = false">
+                                                        CANCEL
+                                                    </button>
+
+                                                    <button type="submit"
+                                                            class="cm-remove-confirm-button">
+                                                        CONFIRM REMOVE
+                                                    </button>
+
+                                                </div>
+
+                                            </div>
+
+                                        </details>
+
+                                    </form>
+
+                                </div>
+                            }
+
                         </div>
+                    }
+                    else
+                    {
+                        <div class="cm-no-media">
+                            No media attached.
+                        </div>
+                    }
 
-                    </details>
+                </div>
 
-                </form>
 
-            </div>
+
+                <!-- ADD MEDIA -->
+                <div class="cm-media-footer-add">
+
+                    <div class="cm-media-footer-heading">
+                        ADD MEDIA
+                    </div>
+
+                    <p class="cm-upload-description">
+                        Select one or more files.
+                    </p>
+
+                    <input type="file"
+                           id="MediaFiles"
+                           name="mediaFiles"
+                           form="@(createMode ? "createContentForm" : "editContentForm")"
+                           accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.mp3,.wav,.pdf"
+                           multiple />
+
+                    <small>
+                        Videos: MP4, WebM, MOV.
+                        Images: JPG, PNG, WebP.
+                        Audio: MP3, WAV.
+                        Documents: PDF.
+                    </small>
+
+
+                    <div class="cm-media-footer-actions">
+
+                        @if (createMode)
+                        {
+                            <a asp-controller="Content"
+                               asp-action="Index"
+                               asp-route-categoryId="@selectedCategoryId"
+                               asp-route-status="@selectedStatus"
+                               class="cm-cancel-button">
+                                CANCEL
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Content"
+                               asp-action="Index"
+                               asp-route-selectedId="@selectedItem!.Id"
+                               asp-route-categoryId="@selectedCategoryId"
+                               asp-route-status="@selectedStatus"
+                               class="cm-cancel-button">
+                                CANCEL
+                            </a>
+                        }
+
+
+                        <button type="submit"
+                                form="@(createMode ? "createContentForm" : "editContentForm")"
+                                class="cm-save-button">
+
+                            @(createMode ? "CREATE CONTENT" : "SAVE CHANGES")
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
         }
 
-    </div>
-}
-                else
-                {
-                    <div class="cm-no-media">
-                        No media attached.
-                    </div>
-                }
-
-            </div>
-
-
-            <!-- ADD MEDIA -->
-            <div class="cm-media-footer-add">
-
-                <div class="cm-media-footer-heading">
-                    ADD MEDIA
-                </div>
-
-                <p class="cm-upload-description">
-                    Select one or more files.
-                </p>
-
-                <input type="file"
-                       id="MediaFiles"
-                       name="mediaFiles"
-                       form="editContentForm"
-                       accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.mp3,.wav,.pdf"
-                       multiple />
-
-                <small>
-                    Videos: MP4, WebM, MOV.
-                    Images: JPG, PNG, WebP.
-                    Audio: MP3, WAV.
-                    Documents: PDF.
-                </small>
-
-                <div class="cm-media-footer-actions">
-
-                    <a asp-controller="Content"
-                       asp-action="Index"
-                       asp-route-selectedId="@selectedItem.Id"
-                       class="cm-cancel-button">
-                        CANCEL
-                    </a>
-
-                    <button type="submit"
-                            form="editContentForm"
-                            class="cm-save-button">
-                        SAVE CHANGES
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            
-
-        </section>
-    }
-
     </main>
-
-    
-   
-
 
 
 

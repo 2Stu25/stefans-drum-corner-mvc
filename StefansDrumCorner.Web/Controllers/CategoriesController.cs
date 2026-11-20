@@ -81,11 +81,12 @@ namespace StefansDrumCorner.Web.Controllers
 
                     if (!ModelState.IsValid)
                     {
-                        await LoadParentCategories();
-                        return View(category);
+                        return await ReturnToWorkspaceAsync(
+                            category,
+                            newCategoryMode: true);
                     }
 
-                    int highestDisplayOrder = await _context.ContentCategories
+            int highestDisplayOrder = await _context.ContentCategories
                         .Where(c =>
                             c.ParentCategoryId == category.ParentCategoryId &&
                             c.IsActive)
@@ -233,8 +234,11 @@ namespace StefansDrumCorner.Web.Controllers
             if (!ModelState.IsValid)
             {
                 updatedCategory.Image = category.Image;
-                await LoadParentCategories();
-                return View(updatedCategory);
+
+                return await ReturnToWorkspaceAsync(
+                    updatedCategory,
+                    newCategoryMode: false,
+                    editCategoryMode: true);
             }
 
             string newName = updatedCategory.Name.Trim();
@@ -582,6 +586,60 @@ namespace StefansDrumCorner.Web.Controllers
 
             return slug;
         }
+
+        private async Task<IActionResult> ReturnToWorkspaceAsync(
+            ContentCategory categoryForm,
+            bool newCategoryMode,
+            bool editCategoryMode = false)
+                {
+                    var categories = await _context.ContentCategories
+                        .Where(c => c.IsActive)
+                        .OrderBy(c => c.ParentCategoryId.HasValue)
+                        .ThenBy(c => c.ParentCategoryId)
+                        .ThenBy(c => c.DisplayOrder)
+                        .ToListAsync();
+
+                    var archivedCategories = await _context.ContentCategories
+                        .Where(c =>
+                            !c.IsActive &&
+                            (c.ParentCategoryId == null ||
+                             c.ParentCategory!.IsActive))
+                        .Include(c => c.ParentCategory)
+                        .Include(c => c.SubCategories.Where(s => !s.IsActive))
+                        .OrderBy(c => c.ParentCategoryId)
+                        .ThenBy(c => c.DisplayOrder)
+                        .ToListAsync();
+
+                    var contentItems = await _context.ContentItems
+                        .Include(c => c.Category)
+                        .OrderBy(c => c.DisplayOrder)
+                        .ThenByDescending(c => c.CreatedAtUtc)
+                        .ToListAsync();
+
+                    ViewBag.CreateMode = false;
+                    ViewBag.NewContentItem = new ContentItem();
+
+                    ViewBag.NewCategoryMode = newCategoryMode;
+                    ViewBag.NewCategory = newCategoryMode ? categoryForm : null;
+
+                    ViewBag.EditCategory = editCategoryMode ? categoryForm : null;
+
+                    ViewBag.ShowArchivedCategories = false;
+                    ViewBag.ArchivedCategories = archivedCategories;
+
+                    ViewBag.SelectedItem = null;
+                    ViewBag.Categories = categories;
+
+                    ViewBag.SelectedCategoryId = editCategoryMode
+                        ? categoryForm.Id
+                        : categoryForm.ParentCategoryId;
+
+                    ViewBag.SelectedStatus = "";
+
+                    return View(
+                        "~/Views/Content/Index.cshtml",
+                        contentItems);
+                }
 
         private IActionResult RedirectToContentManager()
         {
