@@ -1,0 +1,218 @@
+﻿
+@using StefansDrumCorner.Web.Models.Content
+@model ContentItem
+
+@{
+    ViewData["Title"] = "Edit Content";
+
+    int? selectedCategoryId = Model.CategoryId;
+}
+
+<section class="content-manager">
+
+    <header class="content-manager-header">
+
+        <span class="account-label">PRIVATE ACCESS / CONTENT MANAGEMENT</span>
+
+        <div class="content-manager-title-row">
+
+            <h1>EDIT CONTENT</h1>
+
+            <a asp-controller="Content"
+               asp-action="Index"
+               class="content-manager-back">
+                BACK TO CONTENT LIBRARY
+            </a>
+
+        </div>
+
+        <p>Update content and manage its associated media.</p>
+
+    </header>
+
+    <form asp-controller="Content"
+          asp-action="Edit"
+          asp-route-id="@Model.Id"
+          method="post"
+          enctype="multipart/form-data"
+          class="content-manager-form">
+
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger">
+        </div>
+
+        <div class="form-group">
+            <label for="Title">TITLE</label>
+            <input type="text"
+                   id="Title"
+                   name="Title"
+                   value="@Model.Title"
+                   required />
+        </div>
+
+        <div class="form-group">
+            <label for="Description">DESCRIPTION</label>
+            <textarea id="Description"
+                      name="Description"
+                      rows="5">@Model.Description</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="CategoryId">CATEGORY</label>
+
+            <select id="CategoryId" name="CategoryId">
+                <option value="">SELECT CATEGORY</option>
+
+                @foreach (var category in (List<ContentCategory>)ViewBag.Categories)
+                {
+                    <option value="@category.Id"
+                            selected="@(selectedCategoryId == category.Id)">
+                        @category.Name
+                    </option>
+                }
+            </select>
+        </div>
+
+        
+
+        <div class="form-group">
+            <label for="Status">STATUS</label>
+
+            <select id="Status" name="Status">
+                @foreach (ContentStatus status in Enum.GetValues(typeof(ContentStatus)))
+                {
+                    <option value="@status"
+                            selected="@(Model.Status == status)">
+                        @status
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="DisplayOrder">DISPLAY ORDER</label>
+
+            <input type="number"
+                   id="DisplayOrder"
+                   name="DisplayOrder"
+                   value="@Model.DisplayOrder" />
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox"
+                       name="IsFeatured"
+                       value="true"
+                       checked="@(Model.IsFeatured)" />
+                FEATURED CONTENT
+            </label>
+        </div>
+
+        <div class="content-manager-media-section">
+
+            <h2>CURRENT MEDIA</h2>
+
+            <p>Existing files attached to this content item.</p>
+
+            @if (Model.ContentMedia.Any())
+            {
+                @foreach (var media in Model.ContentMedia
+                    .OrderBy(m => m.Role)
+                    .ThenBy(m => m.DisplayOrder))
+                {
+                    <div class="form-group">
+
+                        <strong>@media.Role</strong>
+
+                        <a href="@Url.Content("~/" + media.MediaAsset.StorageKey)"
+                           target="_blank">
+                            @media.MediaAsset.OriginalFileName
+                        </a>
+
+                        <label>
+                            <input type="checkbox"
+                                   name="removeMediaIds"
+                                   value="@media.Id" />
+                            REMOVE THIS ATTACHMENT
+                        </label>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p>No media files are currently attached.</p>
+            }
+
+        </div>
+
+        <div class="content-manager-media-section">
+
+            <h2>ADD MEDIA</h2>
+
+            <p>Leave fields empty to keep existing attachments.</p>
+
+            <div class="form-group">
+                <label for="MainVideo">MAIN VIDEO</label>
+                <input type="file"
+                       id="MainVideo"
+                       name="mainVideo"
+                       accept=".mp4,.webm,.mov" />
+            </div>
+
+            <div class="form-group">
+                <label for="Thumbnail">THUMBNAIL</label>
+                <input type="file"
+                       id="Thumbnail"
+                       name="thumbnail"
+                       accept=".jpg,.jpeg,.png,.webp" />
+            </div>
+
+            <div class="form-group">
+                <label for="Documents">DOCUMENTS</label>
+                <input type="file"
+                       id="Documents"
+                       name="documents"
+                       accept=".pdf"
+                       multiple />
+            </div>
+
+            <div class="form-group">
+                <label for="GalleryImages">GALLERY IMAGES</label>
+                <input type="file"
+                       id="GalleryImages"
+                       name="galleryImages"
+                       accept=".jpg,.jpeg,.png,.webp"
+                       multiple />
+            </div>
+
+            <div class="form-group">
+                <label for="AudioFiles">AUDIO FILES</label>
+                <input type="file"
+                       id="AudioFiles"
+                       name="audioFiles"
+                       accept=".mp3,.wav"
+                       multiple />
+            </div>
+
+        </div>
+
+        <div class="content-manager-form-actions">
+
+            <button type="submit" class="content-manager-create">
+                SAVE CHANGES
+            </button>
+
+            <a asp-controller="Content"
+               asp-action="Index"
+               class="content-manager-back">
+                CANCEL
+            </a>
+
+        </div>
+
+    </form>
+
+</section>

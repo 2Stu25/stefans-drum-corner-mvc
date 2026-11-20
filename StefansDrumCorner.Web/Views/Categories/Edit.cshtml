@@ -1,0 +1,188 @@
+﻿
+@using StefansDrumCorner.Web.Models.Content
+@model ContentCategory
+
+@{
+    ViewData["Title"] = "Edit Category";
+}
+
+<section class="admin-dashboard">
+
+    <header class="admin-dashboard-header">
+
+        <span class="account-label">PRIVATE ACCESS / CATEGORY MANAGEMENT</span>
+
+        <div class="admin-dashboard-title-row">
+
+            <h1>EDIT CATEGORY</h1>
+
+            <a asp-controller="Content"
+               asp-action="Index"
+               class="content-manager-back">
+                BACK TO CONTENT MANAGER
+            </a>
+
+        </div>
+
+        <p>Update category information and manage its image.</p>
+
+    </header>
+
+    <form asp-controller="Categories"
+          asp-action="Edit"
+          asp-route-id="@Model.Id"
+          method="post"
+          enctype="multipart/form-data"
+          class="content-manager-form">
+
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger">
+        </div>
+
+        <div class="form-group">
+
+            <label for="Name">CATEGORY NAME</label>
+
+            <input type="text"
+                   id="Name"
+                   name="Name"
+                   value="@Model.Name"
+                   required />
+
+            <span asp-validation-for="Name"></span>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="Subtitle">SUBTITLE</label>
+
+            <input type="text"
+                   id="Subtitle"
+                   name="Subtitle"
+                   value="@Model.Subtitle" />
+
+            <span asp-validation-for="Subtitle"></span>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="Description">DESCRIPTION</label>
+
+            <textarea id="Description"
+                      name="Description"
+                      rows="4">@Model.Description</textarea>
+
+            <span asp-validation-for="Description"></span>
+
+            <p class="form-help">
+                Describe what visitors can find in this category.
+            </p>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="ParentCategoryId">PARENT CATEGORY</label>
+
+            <select id="ParentCategoryId"
+                    name="ParentCategoryId">
+
+                <option value="">MAIN CATEGORY</option>
+
+                @foreach (var parent in (List<ContentCategory>)ViewBag.ParentCategories)
+                {
+                    <option value="@parent.Id"
+                            selected="@(Model.ParentCategoryId == parent.Id)">
+                        @parent.Name
+                    </option>
+                }
+
+            </select>
+
+            <span asp-validation-for="ParentCategoryId"></span>
+
+            <p class="form-help">
+                Leave empty to make this a main category.
+            </p>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>CATEGORY IMAGE</label>
+
+            @if (Model.Image != null)
+            {
+                <div class="category-image-preview">
+
+                    <img src="@Url.Content("~/" + Model.Image.StorageKey)"
+                         alt="@Model.Name" />
+
+                    <p>
+                        CURRENT IMAGE:
+                        @Model.Image.OriginalFileName
+                    </p>
+
+                    <label>
+                        <input type="checkbox"
+                               name="removeImage"
+                               value="true" />
+                        REMOVE CURRENT IMAGE
+                    </label>
+
+                </div>
+            }
+            else
+            {
+                <p class="form-help">
+                    No category image has been uploaded.
+                </p>
+            }
+
+            <label for="ImageFile">UPLOAD OR REPLACE IMAGE</label>
+
+            <input type="file"
+                   id="ImageFile"
+                   name="imageFile"
+                   accept=".jpg,.jpeg,.png,.webp" />
+
+            <p class="form-help">
+                JPG, PNG and WebP are supported.
+                Uploading a new image replaces the current image.
+            </p>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                <input type="checkbox"
+                       name="IsActive"
+                       value="true"
+                       checked="@Model.IsActive" />
+                ACTIVE CATEGORY
+            </label>
+
+        </div>
+
+        <div class="content-manager-form-actions">
+
+            <button type="submit" class="content-manager-create">
+                SAVE CHANGES
+            </button>
+
+            <a asp-controller="Content"
+               asp-action="Index"
+               class="content-manager-back">
+                CANCEL
+            </a>
+
+        </div>
+
+    </form>
+
+</section>

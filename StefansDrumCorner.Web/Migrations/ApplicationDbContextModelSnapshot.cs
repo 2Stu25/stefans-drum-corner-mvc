@@ -228,7 +228,14 @@ namespace StefansDrumCorner.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ImageId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -238,15 +245,22 @@ namespace StefansDrumCorner.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Section")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("ParentCategoryId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Subtitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("ParentCategoryId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -265,9 +279,6 @@ namespace StefansDrumCorner.Web.Migrations
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ContentType")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -283,10 +294,6 @@ namespace StefansDrumCorner.Web.Migrations
 
                     b.Property<DateTime?>("PublishedAtUtc")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Section")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -436,6 +443,23 @@ namespace StefansDrumCorner.Web.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentCategory", b =>
+                {
+                    b.HasOne("StefansDrumCorner.Web.Models.Content.MediaAsset", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("StefansDrumCorner.Web.Models.Content.ContentCategory", "ParentCategory")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Image");
+
+                    b.Navigation("ParentCategory");
+                });
+
             modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentItem", b =>
                 {
                     b.HasOne("StefansDrumCorner.Web.Models.Content.ContentCategory", "Category")
@@ -449,7 +473,7 @@ namespace StefansDrumCorner.Web.Migrations
             modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentMedia", b =>
                 {
                     b.HasOne("StefansDrumCorner.Web.Models.Content.ContentItem", "ContentItem")
-                        .WithMany()
+                        .WithMany("ContentMedia")
                         .HasForeignKey("ContentItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -463,6 +487,16 @@ namespace StefansDrumCorner.Web.Migrations
                     b.Navigation("ContentItem");
 
                     b.Navigation("MediaAsset");
+                });
+
+            modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentCategory", b =>
+                {
+                    b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentItem", b =>
+                {
+                    b.Navigation("ContentMedia");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,1548 @@
+﻿
+/* =========================================================
+   STEFAN'S DRUM CORNER
+   CONTENT MANAGER
+   Consolidated stylesheet
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   1. WORKSPACE AND COLOUR SYSTEM
+   --------------------------------------------------------- */
+
+.cm-workspace {
+    --cm-bg: #252525;
+    --cm-panel: #303030;
+    --cm-panel-light: #383838;
+    --cm-sidebar: #353535;
+    --cm-border: #494949;
+    --cm-text: #e8e6e1;
+    --cm-muted: #a0a09d;
+    --cm-blue: #83acd5;
+    --cm-green: #83c995;
+    --cm-orange: #d1aa70;
+    --cm-red: #bd7777;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+    background: var(--cm-bg);
+    color: var(--cm-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+}
+
+    .cm-workspace *,
+    .cm-workspace *::before,
+    .cm-workspace *::after {
+        box-sizing: border-box;
+    }
+
+    .cm-workspace a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .cm-workspace button,
+    .cm-workspace input,
+    .cm-workspace select,
+    .cm-workspace textarea {
+        font-family: inherit;
+    }
+
+
+/* ---------------------------------------------------------
+   2. TOP BAR
+   --------------------------------------------------------- */
+
+.cm-topbar {
+    display: flex;
+    flex-direction: column;
+    background: #303030;
+    border-bottom: 1px solid var(--cm-border);
+}
+
+.cm-topbar-main {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    min-height: 59px;
+    padding: 0 24px;
+}
+
+.cm-brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    color: #f0f0ed;
+    white-space: nowrap;
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.cm-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 27px;
+    height: 27px;
+    border: 1px solid #777;
+    border-radius: 4px;
+    color: var(--cm-blue);
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.cm-app-title {
+    color: #b0b0b0;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    white-space: nowrap;
+}
+
+.cm-admin-label {
+    margin-left: auto;
+    padding: 6px 10px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #bbb;
+    font-size: 9px;
+    letter-spacing: 1px;
+}
+
+.cm-top-menu {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    min-height: 35px;
+    padding: 0 24px;
+    border-top: 1px solid #424242;
+}
+
+    .cm-top-menu a {
+        color: #aaa;
+        font-size: 11px;
+        transition: color 0.2s ease;
+    }
+
+        .cm-top-menu a:hover,
+        .cm-top-menu .cm-top-menu-active {
+            color: #fff;
+        }
+
+
+
+/* ---------------------------------------------------------
+   3. MAIN THREE-PANEL LAYOUT
+   --------------------------------------------------------- */
+
+.cm-main {
+    display: grid;
+    grid-template-columns: minmax(190px, 0.75fr) minmax(270px, 1.15fr) minmax(360px, 1.5fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    flex: 1;
+    min-height: 650px;
+}
+
+/* Left workspace panel spans both rows */
+.cm-sidebar {
+    grid-column: 1;
+    grid-row: 1 / 3;
+}
+
+/* Content list occupies the upper middle column */
+.cm-content-panel {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+/* Properties occupy the upper right column */
+.cm-properties-panel {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+/* Media footer occupies the lower two columns */
+.cm-media-footer {
+    grid-column: 2 / 4;
+    grid-row: 2;
+}
+
+
+
+/* ---------------------------------------------------------
+   4. LEFT PANEL: CATEGORY NAVIGATION
+   --------------------------------------------------------- */
+
+.cm-sidebar {
+    min-width: 0;
+    padding: 24px 14px;
+    background: var(--cm-sidebar);
+    border-right: 1px solid var(--cm-border);
+}
+
+.cm-sidebar-heading,
+.cm-filter-heading,
+.cm-category-heading {
+    padding: 0 9px;
+    color: #b0b0b0;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+}
+
+.cm-category-heading {
+    margin-top: 29px;
+    color: var(--cm-blue);
+}
+
+.cm-category-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 9px 15px;
+}
+
+.cm-category-create,
+.cm-category-action {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 0;
+    background: transparent;
+    border: 0;
+    color: var(--cm-green) !important;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+    .cm-category-create:hover,
+    .cm-category-action:hover {
+        color: #b0e0b8 !important;
+    }
+
+.cm-category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.cm-category-group {
+    border-bottom: 1px solid #484848;
+}
+
+.cm-category-summary {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 37px;
+    padding: 7px 9px;
+    color: #e0e0e0;
+    font-size: 11px;
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.2s ease;
+}
+
+    .cm-category-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .cm-category-summary:hover {
+        background: #414141;
+    }
+
+.cm-category-chevron {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-right: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
+    transform: rotate(-45deg);
+    transition: transform 0.2s ease;
+}
+
+.cm-category-group[open] > .cm-category-summary .cm-category-chevron {
+    transform: rotate(45deg);
+}
+
+.cm-category-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cm-category-count {
+    color: #999;
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+}
+
+.cm-category-subcategories {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 0 8px 17px;
+}
+
+.cm-category-link,
+.cm-subcategory-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 30px;
+    padding: 6px 9px;
+    border-left: 2px solid transparent;
+    color: #bdbdbd !important;
+    font-size: 10px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .cm-category-link:hover,
+    .cm-subcategory-link:hover {
+        background: #444;
+        color: #fff !important;
+    }
+
+.cm-category-link-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cm-category-selected {
+    background: #494949;
+    border-left-color: var(--cm-blue);
+    color: #fff !important;
+}
+
+.cm-root-category-link {
+    color: #d2d2d2 !important;
+}
+
+.cm-category-management {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 10px 9px 27px;
+}
+
+.cm-category-archive-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.cm-sidebar-divider {
+    height: 1px;
+    margin: 22px 8px;
+    background: #505050;
+}
+
+
+/* PUBLICATION FILTERS */
+
+.cm-filter-heading {
+    margin-top: 0;
+    color: var(--cm-blue);
+}
+
+.cm-filter-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 12px;
+}
+
+.cm-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 34px;
+    padding: 8px 11px;
+    border-left: 2px solid transparent;
+    color: #ccc !important;
+    font-size: 11px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .cm-nav-item:hover {
+        background: #454545;
+        color: #fff !important;
+    }
+
+    .cm-nav-item.cm-filter-active {
+        background: #494949;
+        border-left-color: var(--cm-blue);
+        color: #fff !important;
+    }
+
+.cm-filter-dot {
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.cm-filter-dot-draft {
+    background: var(--cm-orange);
+}
+
+.cm-filter-dot-published {
+    background: var(--cm-green);
+}
+
+
+/* ---------------------------------------------------------
+   5. MIDDLE PANEL: CONTENT LIST
+   --------------------------------------------------------- */
+
+.cm-content-panel {
+    min-width: 0;
+    background: #252525;
+    border-right: 1px solid var(--cm-border);
+}
+
+.cm-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 25px 21px 20px;
+    border-bottom: 1px solid #414141;
+}
+
+.cm-panel-heading-main {
+    min-width: 0;
+}
+
+.cm-panel-section-label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--cm-blue);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+}
+
+.cm-panel-title {
+    margin: 0;
+    overflow: hidden;
+    color: #f0f0ed;
+    font-family: 'Oswald', sans-serif;
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cm-panel-description {
+    margin-top: 6px;
+    color: #999;
+    font-size: 10px;
+}
+
+.cm-new-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-height: 32px;
+    padding: 0 12px;
+    background: transparent;
+    border: 1px solid #666;
+    border-radius: 3px;
+    color: var(--cm-green) !important;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+    .cm-new-button:hover {
+        border-color: var(--cm-green);
+        color: #b0e0b8 !important;
+    }
+
+.cm-content-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.cm-content-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 73px;
+    padding: 13px 19px;
+    border-bottom: 1px solid #414141;
+    border-left: 2px solid transparent;
+    transition: background 0.2s ease;
+}
+
+    .cm-content-item:hover {
+        background: #353535;
+    }
+
+    .cm-content-item.cm-content-item-selected {
+        background: #414141;
+        border-left-color: var(--cm-blue);
+    }
+
+.cm-item-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 7px;
+}
+
+.cm-item-title {
+    overflow: hidden;
+    color: #f0f0ed;
+    font-size: 12px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cm-item-category {
+    overflow: hidden;
+    color: #aaa;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cm-item-meta {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 10px;
+}
+
+.cm-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.cm-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #888;
+}
+
+.cm-status-published {
+    color: var(--cm-green);
+}
+
+    .cm-status-published .cm-status-dot {
+        background: var(--cm-green);
+    }
+
+.cm-status-draft {
+    color: var(--cm-orange);
+}
+
+    .cm-status-draft .cm-status-dot {
+        background: var(--cm-orange);
+    }
+
+.cm-status-archived {
+    color: #999;
+}
+
+.cm-item-chevron {
+    color: #888;
+    font-size: 19px;
+}
+
+.cm-empty {
+    padding: 45px 20px;
+    text-align: center;
+}
+
+.cm-empty-title {
+    color: #ccc;
+    font-family: 'Oswald', sans-serif;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.cm-empty p {
+    margin: 10px 0 20px;
+    color: #999;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+
+/* ---------------------------------------------------------
+   6. RIGHT PANEL: PROPERTIES
+   --------------------------------------------------------- */
+
+.cm-properties-panel {
+    min-width: 0;
+    background: #353535;
+}
+
+.cm-properties-form {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.cm-properties-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 25px 20px;
+    border-bottom: 1px solid #4b4b4b;
+}
+
+.cm-properties-title {
+    margin: 0;
+    color: #f0f0ed;
+    font-family: 'Oswald', sans-serif;
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.cm-item-number {
+    color: #aaa;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
+
+.cm-property-section {
+    padding: 21px 25px;
+    border-bottom: 1px solid #4b4b4b;
+}
+
+.cm-property-section-heading {
+    margin-bottom: 19px;
+    color: var(--cm-blue);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+}
+
+
+/* ---------------------------------------------------------
+   7. FORM FIELDS
+   --------------------------------------------------------- */
+
+.cm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 17px;
+}
+
+    .cm-field:last-child {
+        margin-bottom: 0;
+    }
+
+    .cm-field label,
+    .cm-featured-field label {
+        color: #bbb;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .cm-field input:not([type="file"]),
+    .cm-field select,
+    .cm-field textarea {
+        width: 100%;
+        min-height: 38px;
+        padding: 9px 11px;
+        border: 1px solid #505050;
+        border-radius: 4px;
+        outline: none;
+        background: #252525;
+        color: #eee;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        box-shadow: none;
+    }
+
+    .cm-field textarea {
+        min-height: 90px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+        .cm-field input:focus,
+        .cm-field select:focus,
+        .cm-field textarea:focus {
+            border-color: var(--cm-blue);
+        }
+
+    .cm-field select {
+        cursor: pointer;
+    }
+
+        .cm-field select option {
+            background: #252525;
+            color: #eee;
+        }
+
+
+/* PUBLICATION CONTROLS */
+
+.cm-publication-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 25px;
+}
+
+.cm-status-field {
+    flex: 1;
+    max-width: 220px;
+}
+
+.cm-featured-field {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+}
+
+    .cm-featured-field label {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+    }
+
+    .cm-featured-field input {
+        width: 15px;
+        height: 15px;
+        accent-color: var(--cm-green);
+        cursor: pointer;
+    }
+
+
+
+
+
+/* =========================================================
+   8. ATTACHED MEDIA
+   ========================================================= */
+
+.cm-attached-media {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+    .cm-attached-media .cm-property-section-heading {
+        margin-bottom: 9px;
+    }
+
+.cm-media-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.cm-media-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 29px;
+    padding: 4px 0;
+    border-bottom: 1px solid #484848;
+}
+
+    .cm-media-row:last-child {
+        border-bottom: 0;
+    }
+
+.cm-media-info {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    gap: 7px;
+}
+
+.cm-media-role {
+    flex-shrink: 0;
+    color: #ccc;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.cm-media-filename {
+    overflow: hidden;
+    color: #e0e0e0;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cm-media-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    gap: 14px;
+}
+
+.cm-media-details {
+    color: #999;
+    font-size: 9px;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.cm-no-media {
+    margin: 0;
+    color: #999;
+    font-size: 10px;
+}
+
+/* Individual remove action */
+
+.cm-remove-media-form {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.cm-remove-confirm {
+    position: relative;
+}
+
+    .cm-remove-confirm summary {
+        list-style: none;
+        cursor: pointer;
+    }
+
+        .cm-remove-confirm summary::-webkit-details-marker {
+            display: none;
+        }
+
+.cm-remove-media-button {
+    display: inline-block;
+    padding: 4px 7px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: transparent;
+    color: #d49a72;
+    font-size: 9px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+    .cm-remove-media-button:hover {
+        color: #fff;
+        border-color: #d49a72;
+    }
+
+/* Inline removal confirmation */
+
+.cm-remove-confirm-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    width: 230px;
+    padding: 12px;
+    background: #383838;
+    border: 1px solid #626262;
+    border-radius: 5px;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
+    color: #e8e6e1;
+    font-size: 11px;
+}
+
+.cm-remove-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.cm-remove-cancel,
+.cm-remove-confirm-button {
+    padding: 5px 8px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: transparent;
+    font-size: 9px;
+    cursor: pointer;
+}
+
+.cm-remove-cancel {
+    color: #c8c8c8;
+}
+
+.cm-remove-confirm-button {
+    color: #83c995;
+    border-color: #555;
+}
+
+    .cm-remove-cancel:hover,
+    .cm-remove-confirm-button:hover {
+        background: #484848;
+    }
+
+
+
+/* ---------------------------------------------------------
+   9. ADD MEDIA
+   --------------------------------------------------------- */
+
+.cm-add-media {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.cm-add-media-details {
+    width: 100%;
+}
+
+.cm-add-media-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+    .cm-add-media-toggle::-webkit-details-marker {
+        display: none;
+    }
+
+.cm-add-media-title {
+    color: var(--cm-green);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.cm-add-media-hint {
+    color: #999;
+    font-size: 10px;
+}
+
+.cm-add-media-toggle:hover .cm-add-media-title {
+    color: #b0e0b8;
+}
+
+.cm-add-media-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 18px;
+}
+
+.cm-upload-description {
+    margin: 8px 0 0;
+    color: #aaa;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+}
+
+.cm-add-media-content input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #505050;
+    border-radius: 4px;
+    background: #252525;
+    color: #aaa;
+    font-size: 10px;
+}
+
+    .cm-add-media-content input[type="file"]::file-selector-button {
+        padding: 6px 10px;
+        margin-right: 10px;
+        border: 1px solid #606060;
+        border-radius: 3px;
+        background: transparent;
+        color: #ddd;
+        font-size: 10px;
+        cursor: pointer;
+    }
+
+        .cm-add-media-content input[type="file"]::file-selector-button:hover {
+            border-color: var(--cm-blue);
+        }
+
+
+/* ---------------------------------------------------------
+   10. FORM ACTIONS
+   --------------------------------------------------------- */
+
+.cm-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 17px 25px;
+    margin-top: auto;
+    background: #303030;
+    border-top: 1px solid #484848;
+}
+
+.cm-cancel-button,
+.cm-save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 35px;
+    padding: 0 15px;
+    border: 1px solid #666;
+    border-radius: 3px;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.cm-cancel-button {
+    color: #bbb !important;
+}
+
+    .cm-cancel-button:hover {
+        border-color: #999;
+        color: #fff !important;
+    }
+
+.cm-save-button {
+    border-color: #666;
+    color: var(--cm-green);
+}
+
+    .cm-save-button:hover {
+        border-color: var(--cm-green);
+        color: #b0e0b8;
+    }
+
+
+/* ---------------------------------------------------------
+   11. EMPTY PROPERTIES PANEL
+   --------------------------------------------------------- */
+
+.cm-no-selection {
+    padding: 55px 25px;
+    text-align: center;
+}
+
+.cm-no-selection-title {
+    color: #ccc;
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.cm-no-selection p {
+    color: #999;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+
+/* ---------------------------------------------------------
+   12. BOTTOM STATUS BAR
+   --------------------------------------------------------- */
+
+.cm-statusbar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 35px;
+    padding: 0 20px;
+    background: #292929;
+    border-top: 1px solid var(--cm-border);
+    color: #999;
+    font-size: 9px;
+    letter-spacing: 1px;
+}
+
+.cm-statusbar-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.cm-ready-indicator {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--cm-green);
+}
+
+.cm-statusbar-right {
+    margin-left: auto;
+}
+
+
+/* ---------------------------------------------------------
+   13. INTERACTION AND FOCUS
+   --------------------------------------------------------- */
+
+.cm-workspace a:focus-visible,
+.cm-workspace button:focus-visible,
+.cm-workspace summary:focus-visible,
+.cm-workspace input:focus-visible,
+.cm-workspace select:focus-visible,
+.cm-workspace textarea:focus-visible {
+    outline: 1px solid var(--cm-blue);
+    outline-offset: 2px;
+}
+
+.cm-workspace button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* ---------------------------------------------------------
+   14. TABLET
+   --------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+
+    .cm-topbar-main {
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 13px 18px;
+    }
+
+    .cm-top-menu {
+        gap: 20px;
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .cm-main {
+        grid-template-columns: minmax(165px, 0.75fr) minmax(230px, 1fr) minmax(320px, 1.3fr);
+    }
+
+    .cm-sidebar {
+        padding: 20px 10px;
+    }
+
+    .cm-properties-header,
+    .cm-property-section {
+        padding-right: 19px;
+        padding-left: 19px;
+    }
+
+    .cm-form-actions {
+        padding-right: 19px;
+        padding-left: 19px;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   15. SMALLER TABLETS
+   --------------------------------------------------------- */
+
+@media (max-width: 850px) {
+
+    .cm-main {
+        grid-template-columns: minmax(155px, 0.65fr) minmax(0, 1fr);
+    }
+
+    .cm-properties-panel {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        border-top: 1px solid var(--cm-border);
+    }
+
+    .cm-sidebar {
+        grid-row: 1;
+    }
+
+    .cm-content-panel {
+        grid-row: 1;
+    }
+
+    .cm-properties-form {
+        min-height: auto;
+    }
+
+    .cm-form-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   16. MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 600px) {
+
+    .cm-workspace {
+        min-height: calc(100vh - 60px);
+    }
+
+    .cm-topbar-main {
+        gap: 10px;
+        padding: 13px;
+    }
+
+    .cm-brand {
+        font-size: 13px;
+    }
+
+    .cm-brand-mark {
+        width: 24px;
+        height: 24px;
+    }
+
+    .cm-app-title {
+        font-size: 9px;
+    }
+
+    .cm-admin-label {
+        margin-left: auto;
+        padding: 5px 7px;
+    }
+
+    .cm-top-menu {
+        gap: 19px;
+        overflow-x: auto;
+        padding: 0 13px;
+    }
+
+        .cm-top-menu a {
+            flex-shrink: 0;
+            font-size: 10px;
+        }
+
+    .cm-main {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cm-sidebar {
+        padding: 16px 13px;
+        border-right: 0;
+        border-bottom: 1px solid var(--cm-border);
+    }
+
+    .cm-category-heading {
+        margin-top: 20px;
+    }
+
+    .cm-category-actions {
+        padding-bottom: 10px;
+    }
+
+    .cm-category-list {
+        max-height: 330px;
+        overflow-y: auto;
+    }
+
+    .cm-filter-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .cm-nav-item {
+        padding: 8px 10px;
+    }
+
+    .cm-panel-heading {
+        padding: 19px 15px;
+    }
+
+    .cm-panel-title {
+        font-size: 19px;
+    }
+
+    .cm-content-item {
+        min-height: 66px;
+        padding: 12px 14px;
+    }
+
+    .cm-properties-header {
+        padding: 19px 16px;
+    }
+
+    .cm-property-section {
+        padding: 18px 16px;
+    }
+
+    .cm-publication-controls {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .cm-status-field {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .cm-featured-field {
+        min-height: 30px;
+    }
+
+    .cm-media-info {
+        gap: 4px;
+    }
+
+    .cm-media-filename {
+        max-width: 180px;
+    }
+
+    .cm-form-actions {
+        position: sticky;
+        bottom: 0;
+        padding: 13px 16px;
+    }
+
+    .cm-statusbar {
+        padding: 0 13px;
+        font-size: 8px;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   17. VERY SMALL SCREENS
+   --------------------------------------------------------- */
+
+@media (max-width: 380px) {
+
+    .cm-brand {
+        font-size: 11px;
+    }
+
+    .cm-app-title {
+        font-size: 8px;
+    }
+
+    .cm-admin-label {
+        font-size: 8px;
+    }
+
+    .cm-panel-heading {
+        gap: 8px;
+    }
+
+    .cm-new-button {
+        padding: 0 8px;
+        font-size: 9px;
+    }
+
+    .cm-item-meta {
+        gap: 5px;
+    }
+
+    .cm-status {
+        font-size: 8px;
+    }
+
+    .cm-properties-title {
+        font-size: 19px;
+    }
+
+    .cm-media-filename {
+        max-width: 130px;
+    }
+}
+
+
+/* =========================================================
+   18. FULL WIDTH MEDIA FOOTER
+   ========================================================= */
+
+.cm-media-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+    gap: 0;
+    background: #303030;
+    border-top: 1px solid var(--cm-border);
+    border-bottom: 1px solid var(--cm-border);
+}
+
+.cm-media-footer-existing,
+.cm-media-footer-add {
+    min-width: 0;
+    padding: 16px 22px;
+}
+
+.cm-media-footer-existing {
+    border-right: 1px solid var(--cm-border);
+}
+
+.cm-media-footer-heading {
+    margin-bottom: 12px;
+    color: var(--cm-blue);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+}
+
+.cm-media-footer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.cm-media-footer-row {
+    display: grid;
+    grid-template-columns: auto minmax(100px, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #484848;
+}
+
+    .cm-media-footer-row:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .cm-media-footer-row .cm-media-filename {
+        min-width: 0;
+    }
+
+    .cm-media-footer-row .cm-media-details {
+        white-space: nowrap;
+    }
+
+.cm-media-footer-add {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+    .cm-media-footer-add .cm-upload-description {
+        margin: -3px 0 10px;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .cm-media-footer-add input[type="file"] {
+        width: 100%;
+        min-width: 0;
+        padding: 7px;
+        border: 1px solid #505050;
+        border-radius: 3px;
+        background: #252525;
+        color: #aaa;
+        font-size: 10px;
+    }
+
+        .cm-media-footer-add input[type="file"]::file-selector-button {
+            padding: 6px 9px;
+            margin-right: 8px;
+            border: 1px solid #606060;
+            border-radius: 3px;
+            background: transparent;
+            color: #ddd;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+    .cm-media-footer-add small {
+        margin-top: 8px;
+        color: #999;
+        font-size: 9px;
+        line-height: 1.6;
+    }
+
+.cm-media-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    width: 100%;
+    margin-top: auto;
+    padding: 14px 0 0;
+    background: transparent;
+    border-top: 1px solid #484848;
+}
+
+/* Tablet */
+
+@media (max-width: 850px) {
+    .cm-media-footer {
+        grid-template-columns: 1fr;
+    }
+
+    .cm-media-footer-existing {
+        border-right: 0;
+        border-bottom: 1px solid var(--cm-border);
+    }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    .cm-media-footer-existing,
+    .cm-media-footer-add {
+        padding: 15px;
+    }
+
+    .cm-media-footer-row {
+        grid-template-columns: 1fr auto;
+        gap: 5px 10px;
+    }
+
+        .cm-media-footer-row .cm-media-role {
+            grid-column: 1;
+        }
+
+        .cm-media-footer-row .cm-media-filename {
+            grid-column: 1;
+        }
+
+        .cm-media-footer-row .cm-media-details {
+            grid-column: 1;
+            text-align: left;
+        }
+
+        .cm-media-footer-row .cm-remove-media {
+            grid-column: 2;
+            grid-row: 1 / span 3;
+        }
+
+    .cm-media-footer-actions {
+        padding: 12px 15px;
+    }
+}
+
+
+

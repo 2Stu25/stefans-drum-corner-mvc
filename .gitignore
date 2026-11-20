@@ -368,6 +368,9 @@ FodyWeavers.xsd
 .env
 .env.*
 
+# User uploaded media (keep outside Git)
+StefansDrumCorner.Web/wwwroot/uploads/
+
 # Operating system files
 Thumbs.db
 .DS_Store

@@ -54,6 +54,10 @@
 
 
 
+
+@using StefansDrumCorner.Web.Models.Content
+@model List<ContentCategory>
+
 <!-- EXPLORE THE DRUM CORNER -->
 
 <section class="editorial-section" id="explore">
@@ -71,131 +75,50 @@
 
     </div>
 
-
     <div class="article-grid">
 
-        <!-- VIDEOS -->
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            var category = Model[i];
 
-        <article class="article-card" id="videos">
+            <article class="article-card"
+                     id="@category.Slug">
 
-            <div class="article-image">
-                <img src="~/images/stefan-videos.png"
-                     alt="Stefan playing drums"
-                     asp-append-version="true" />
-            </div>
+                <div class="article-image">
 
-            <div class="article-content">
+                    @if (category.Image != null)
+                    {
+                        <img src="@Url.Content("~/" + category.Image.StorageKey)"
+                             alt="@category.Name" />
+                    }
 
-                <span class="article-category">
-                    01 / VIDEOS
-                </span>
+                </div>
 
-                <h3>Drumming Demonstrations</h3>
+                <div class="article-content">
 
-                <p>
-                    Chops, exercises, rudiments and playing
-                    demonstrations on the drum kit.
-                </p>
+                    <span class="article-category">
+                        @($"{i + 1:00}") / @category.Name
+                    </span>
 
-                <a href="#videos">WATCH VIDEOS →</a>
+                    <h3>@category.Subtitle</h3>
 
-            </div>
+                    <p>@category.Description</p>
 
-        </article>
+                    <a asp-controller="Category"
+                       asp-action="Details"
+                       asp-route-slug="@category.Slug">
+                        EXPLORE CATEGORY →
+                    </a>
 
+                </div>
 
-        <!-- PRACTICE LAB -->
-
-        <article class="article-card" id="practice-lab">
-
-            <div class="article-image">
-                <img src="~/images/practice/hand-technique.png"
-                     alt="Drum hand technique"/>
-            </div>
-
-            <div class="article-content">
-
-                <span class="article-category">
-                    02 / PRACTICE LAB
-                </span>
-
-                <h3>Technique & Development</h3>
-
-                <p>
-                    Rudiments, sticking, coordination,
-                    polymeters and structured exercises.
-                </p>
-
-                <a asp-controller="PracticeLab" asp-action="Index">
-                    EXPLORE PRACTICE →
-                </a>
-
-            </div>
-
-        </article>
-
-
-        <!-- GEAR ROOM -->
-
-        <article class="article-card" id="gear-room">
-
-            <div class="article-image">
-                <img src="~/images/drum-gear.png"
-                     alt="Drummer surrounded by Tama drums"
-                     asp-append-version="true" />
-            </div>
-
-            <div class="article-content">
-
-                <span class="article-category">
-                    03 / GEAR ROOM
-                </span>
-
-                <h3>Equipment & Recording</h3>
-
-                <p>
-                    Drum kits, cymbals, sticks, hardware,
-                    microphones and recording equipment.
-                </p>
-
-                <a href="#gear-room">EXPLORE GEAR →</a>
-
-            </div>
-
-        </article>
-
-
-        <!-- DRUM TOOLS -->
-
-        <article class="article-card" id="drum-tools">
-
-            <div class="article-image">
-                <img src="~/images/software.png"
-                     alt="Software"/>
-            </div>
-
-            <div class="article-content">
-
-                <span class="article-category">
-                    04 / DRUM TOOLS
-                </span>
-
-                <h3>Software & Utilities</h3>
-
-                <p>
-                    Custom C++ applications, MuseScore scripts
-                    and practical tools for drummers.
-                </p>
-
-                <a href="#drum-tools">EXPLORE TOOLS →</a>
-
-            </div>
-
-        </article>
+            </article>
+        }
 
     </div>
 
 </section>
+
 
 
 

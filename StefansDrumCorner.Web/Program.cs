@@ -1,14 +1,24 @@
 using Microsoft.EntityFrameworkCore;
 using StefansDrumCorner.Web.Data;
 using Microsoft.AspNetCore.Identity;
-
+using StefansDrumCorner.Web.Services.Media;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 270 * 1024 * 1024;
+});
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 270 * 1024 * 1024;
+});
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IMediaStorageService, LocalMediaStorageService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -38,6 +48,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
