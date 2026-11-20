@@ -1,4 +1,6 @@
 ﻿
+
+
 namespace StefansDrumCorner.Web.Models.Content
 {
     public class ContentCategory
@@ -7,8 +9,9 @@ namespace StefansDrumCorner.Web.Models.Content
 
         public string Name { get; set; } = string.Empty;
 
-        public string Subtitle { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string? Subtitle { get; set; } = string.Empty;
+        public string? Description { get; set; } = string.Empty;
+        public string? ExploreLinkText { get; set; } = string.Empty;
 
         public string Slug { get; set; } = string.Empty;
 

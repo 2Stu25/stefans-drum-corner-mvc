@@ -13,6 +13,7 @@
     bool createMode = ViewBag.CreateMode is bool mode && mode;
     bool newCategoryMode = ViewBag.NewCategoryMode is bool newMode && newMode;
     bool showArchivedCategories = ViewBag.ShowArchivedCategories is bool archivedMode && archivedMode;
+    bool categoriesView = ViewBag.CategoriesView is bool categoriesMode && categoriesMode;
 
     var editCategory = ViewBag.EditCategory as ContentCategory;
 
@@ -68,33 +69,37 @@
 
         </div>
 
+       
         <nav class="cm-top-menu">
 
-            <a asp-controller="Content" asp-action="Index">
+            <a asp-controller="Content"
+                asp-action="Index">
                 File
             </a>
 
             <a asp-controller="Content"
-               asp-action="Index"
-               class="cm-top-menu-active">
+                asp-action="Index"
+                class="cm-top-menu-active">
                 Content
             </a>
 
             <a asp-controller="Content"
                asp-action="Index"
-               asp-route-newCategory="true">
+               asp-route-categoriesView="true">
                 Categories
             </a>
 
-            <a href="#" aria-disabled="true">
-                Settings
-            </a>
-
-            <a href="#" aria-disabled="true">
-                Help
+            <a asp-controller="Home"
+                asp-action="Index"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="cm-view-website">
+                <span>View Website</span>
+                <span aria-hidden="true">↗</span>
             </a>
 
         </nav>
+
 
     </header>
 
@@ -103,166 +108,180 @@
     <main class="cm-main">
 
 
-        <!-- LEFT PANEL: CATEGORY NAVIGATION -->
-        <aside class="cm-sidebar">
+<!-- LEFT PANEL: CATEGORY NAVIGATION -->
+<aside class="cm-sidebar">
 
-            <div class="cm-sidebar-heading">
-                WORKSPACE
-            </div>
+    <div class="cm-sidebar-heading">
+        WORKSPACE
+    </div>
 
-            <div class="cm-category-heading">
-                CATEGORIES
-            </div>
+    <div class="cm-category-heading">
+        CATEGORIES
+    </div>
 
-            <div class="cm-category-actions">
+    <div class="cm-category-actions">
 
-                <a asp-controller="Content"
-                   asp-action="Index"
-                   asp-route-newCategory="true"
-                   class="cm-category-create">
-                    + NEW CATEGORY
-                </a>
+        <a asp-controller="Content"
+           asp-action="Index"
+           asp-route-categoriesView="true"
+           asp-route-newCategory="true"
+           class="cm-category-create">
+            + NEW CATEGORY
+        </a>
 
-                <a asp-controller="Content"
-                   asp-action="Index"
-                   asp-route-showArchived="true"
-                   class="cm-category-action">
-                    ARCHIVE
-                </a>
+        <a asp-controller="Content"
+           asp-action="Index"
+           asp-route-categoriesView="true"
+           asp-route-showArchived="true"
+           class="cm-category-action">
+            ARCHIVE
+        </a>
 
-            </div>
+    </div>
 
 
-            <!-- ALL CONTENT -->
+    <!-- ALL CONTENT / ALL CATEGORIES -->
+    <a asp-controller="Content"
+       asp-action="Index"
+       asp-route-categoriesView="@(categoriesView ? "true" : null)"
+       class="cm-category-link cm-all-content-link @((categoriesView ? editCategory == null : selectedCategoryId == null && string.IsNullOrEmpty(selectedStatus)) && !showArchivedCategories ? "cm-category-selected" : "")">
+
+        <span class="cm-category-link-name">
+            @(categoriesView ? "All categories" : "All content")
+        </span>
+
+        <span class="cm-category-count">
+            @(categoriesView ? categories.Count : itemCount)
+        </span>
+
+    </a>
+
+
+    <!-- CATEGORY TREE -->
+    <div class="cm-category-list">
+
+        @foreach (var root in rootCategories)
+        {
+            var children = categories
+                .Where(c => c.ParentCategoryId == root.Id)
+                .OrderBy(c => c.DisplayOrder)
+                .ThenBy(c => c.Name)
+                .ToList();
+
+            var isRootSelected = categoriesView
+                ? editCategory?.Id == root.Id
+                : selectedCategoryId == root.Id;
+
+            var isChildSelected = categoriesView
+                ? children.Any(c => c.Id == editCategory?.Id)
+                : children.Any(c => c.Id == selectedCategoryId);
+
+            var isGroupSelected = isRootSelected || isChildSelected;
+
+            <details class="cm-category-group"
+                     open="@(isGroupSelected ? "open" : null)">
+
+                <summary class="cm-category-summary">
+
+                    <span class="cm-category-chevron"></span>
+
+                    <a asp-controller="Content"
+                       asp-action="Index"
+                       asp-route-categoriesView="@(categoriesView ? "true" : null)"
+                       asp-route-categoryId="@(categoriesView ? null : root.Id)"
+                       asp-route-editCategoryId="@(categoriesView ? root.Id : null)"
+                       asp-route-status="@(categoriesView ? null : selectedStatus)"
+                       class="cm-category-name @(isRootSelected ? "cm-category-selected" : "")"
+                       onclick="event.stopPropagation();">
+
+                        @root.Name
+
+                    </a>
+
+                    <span class="cm-category-count">
+                        @children.Count
+                    </span>
+
+                </summary>
+
+                <div class="cm-category-subcategories">
+
+                    @foreach (var child in children)
+                    {
+                        var isSelected = categoriesView
+                            ? editCategory?.Id == child.Id
+                            : selectedCategoryId == child.Id;
+
+                        <a asp-controller="Content"
+                           asp-action="Index"
+                           asp-route-categoriesView="@(categoriesView ? "true" : null)"
+                           asp-route-categoryId="@(categoriesView ? null : child.Id)"
+                           asp-route-editCategoryId="@(categoriesView ? child.Id : null)"
+                           asp-route-status="@(categoriesView ? null : selectedStatus)"
+                           class="cm-subcategory-link @(isSelected ? "cm-category-selected" : "")">
+
+                            <span class="cm-category-link-name">
+                                @child.Name
+                            </span>
+
+                        </a>
+                    }
+
+                </div>
+
+            </details>
+        }
+
+    </div>
+
+
+    @if (!categoriesView)
+    {
+        <div class="cm-sidebar-divider"></div>
+
+        <!-- STATUS FILTERS -->
+        <div class="cm-filter-heading">
+            PUBLICATION
+        </div>
+
+        <nav class="cm-filter-nav">
+
             <a asp-controller="Content"
                asp-action="Index"
-               class="cm-category-link cm-all-content-link @(selectedCategoryId == null && string.IsNullOrEmpty(selectedStatus) && !showArchivedCategories ? "cm-category-selected" : "")">
+               asp-route-categoryId="@selectedCategoryId"
+               asp-route-status=""
+               class="cm-nav-item @(string.IsNullOrEmpty(selectedStatus) && !showArchivedCategories ? "cm-filter-active" : "")">
 
-                <span class="cm-category-link-name">
-                    All content
-                </span>
-
-                <span class="cm-category-count">
-                    @itemCount
-                </span>
+                <span>All</span>
 
             </a>
 
+            <a asp-controller="Content"
+               asp-action="Index"
+               asp-route-categoryId="@selectedCategoryId"
+               asp-route-status="Draft"
+               class="cm-nav-item @(selectedStatus == "Draft" ? "cm-filter-active" : "")">
 
-            <!-- CATEGORY TREE -->
-            <div class="cm-category-list">
+                <span class="cm-filter-dot cm-filter-dot-draft"></span>
+                <span>Drafts</span>
 
-                @foreach (var root in rootCategories)
-                {
-                    var children = categories
-                        .Where(c => c.ParentCategoryId == root.Id)
-                        .OrderBy(c => c.DisplayOrder)
-                        .ThenBy(c => c.Name)
-                        .ToList();
+            </a>
 
-                    var isRootSelected = selectedCategoryId == root.Id;
+            <a asp-controller="Content"
+               asp-action="Index"
+               asp-route-categoryId="@selectedCategoryId"
+               asp-route-status="Published"
+               class="cm-nav-item @(selectedStatus == "Published" ? "cm-filter-active" : "")">
 
-                    var isChildSelected = children.Any(
-                        c => c.Id == selectedCategoryId);
+                <span class="cm-filter-dot cm-filter-dot-published"></span>
+                <span>Published</span>
 
-                    var isGroupSelected = isRootSelected || isChildSelected;
+            </a>
 
-                    <details class="cm-category-group"
-                             open="@(isGroupSelected ? "open" : null)">
+        </nav>
+    }
 
-                        <summary class="cm-category-summary">
-
-                            <span class="cm-category-chevron"></span>
-
-                            <a asp-controller="Content"
-                               asp-action="Index"
-                               asp-route-categoryId="@root.Id"
-                               asp-route-status="@selectedStatus"
-                               class="cm-category-name @(isRootSelected ? "cm-category-selected" : "")"
-                               onclick="event.stopPropagation();">
-
-                                @root.Name
-
-                            </a>
-
-                            <span class="cm-category-count">
-                                @children.Count
-                            </span>
-
-                        </summary>
-
-                        <div class="cm-category-subcategories">
-
-                            @foreach (var child in children)
-                            {
-                                var isSelected = selectedCategoryId == child.Id;
-
-                                <a asp-controller="Content"
-                                   asp-action="Index"
-                                   asp-route-categoryId="@child.Id"
-                                   asp-route-status="@selectedStatus"
-                                   class="cm-subcategory-link @(isSelected ? "cm-category-selected" : "")">
-
-                                    <span class="cm-category-link-name">
-                                        @child.Name
-                                    </span>
-
-                                </a>
-                            }
-
-                        </div>
-
-                    </details>
-                }
-
-            </div>
-
-
-            <div class="cm-sidebar-divider"></div>
-
-
-            <!-- STATUS FILTERS -->
-            <div class="cm-filter-heading">
-                PUBLICATION
-            </div>
-
-            <nav class="cm-filter-nav">
-
-                <a asp-controller="Content"
-                   asp-action="Index"
-                   asp-route-categoryId="@selectedCategoryId"
-                   asp-route-status=""
-                   class="cm-nav-item @(string.IsNullOrEmpty(selectedStatus) && !showArchivedCategories ? "cm-filter-active" : "")">
-
-                    <span>All</span>
-
-                </a>
-
-                <a asp-controller="Content"
-                   asp-action="Index"
-                   asp-route-categoryId="@selectedCategoryId"
-                   asp-route-status="Draft"
-                   class="cm-nav-item @(selectedStatus == "Draft" ? "cm-filter-active" : "")">
-
-                    <span class="cm-filter-dot cm-filter-dot-draft"></span>
-                    <span>Drafts</span>
-
-                </a>
-
-                <a asp-controller="Content"
-                   asp-action="Index"
-                   asp-route-categoryId="@selectedCategoryId"
-                   asp-route-status="Published"
-                   class="cm-nav-item @(selectedStatus == "Published" ? "cm-filter-active" : "")">
-
-                    <span class="cm-filter-dot cm-filter-dot-published"></span>
-                    <span>Published</span>
-
-                </a>
-
-            </nav>
-
-        </aside>
+</aside>
 
 
 
@@ -433,7 +452,126 @@
             }
             else
             {
-                <!-- NORMAL CONTENT VIEW -->
+            
+@if (categoriesView)
+{
+    <!-- CATEGORY WORKSPACE -->
+
+    <div class="cm-panel-heading">
+
+        <div class="cm-panel-heading-main">
+
+            <div class="cm-panel-section-label">
+                WORKSPACE
+            </div>
+
+            <h2 class="cm-panel-title">
+                CATEGORIES
+            </h2>
+
+            <div class="cm-panel-description">
+                @categories.Count @(categories.Count == 1 ? "category" : "categories")
+            </div>
+
+        </div>
+
+        <a asp-controller="Content"
+           asp-action="Index"
+           asp-route-categoriesView="true"
+           asp-route-newCategory="true"
+           class="cm-new-button">
+            + NEW CATEGORY
+        </a>
+
+    </div>
+
+
+    <div class="cm-content-list">
+
+        @if (rootCategories.Any())
+        {
+            @foreach (var root in rootCategories)
+            {
+                var isRootSelected = editCategory?.Id == root.Id;
+
+                <a asp-controller="Content"
+                   asp-action="Index"
+                   asp-route-categoriesView="true"
+                   asp-route-editCategoryId="@root.Id"
+                   class="cm-content-item @(isRootSelected ? "cm-content-item-selected" : "")">
+
+                    <div class="cm-item-main">
+
+                        <div class="cm-item-title">
+                            @root.Name
+                        </div>
+
+                        <div class="cm-item-category">
+                            MAIN CATEGORY
+                        </div>
+
+                    </div>
+
+                    <div class="cm-item-meta">
+                        <span class="cm-item-chevron">›</span>
+                    </div>
+
+                </a>
+
+                @foreach (var child in categories
+                    .Where(c => c.ParentCategoryId == root.Id)
+                    .OrderBy(c => c.DisplayOrder)
+                    .ThenBy(c => c.Name))
+                {
+                    var isChildSelected = editCategory?.Id == child.Id;
+
+                    <a asp-controller="Content"
+                       asp-action="Index"
+                       asp-route-categoriesView="true"
+                       asp-route-editCategoryId="@child.Id"
+                       class="cm-content-item @(isChildSelected ? "cm-content-item-selected" : "")">
+
+                        <div class="cm-item-main">
+
+                            <div class="cm-item-title">
+                                ↳ @child.Name
+                            </div>
+
+                            <div class="cm-item-category">
+                                SUBCATEGORY OF @root.Name
+                            </div>
+
+                        </div>
+
+                        <div class="cm-item-meta">
+                            <span class="cm-item-chevron">›</span>
+                        </div>
+
+                    </a>
+                }
+            }
+        }
+        else
+        {
+            <div class="cm-empty">
+
+                <div class="cm-empty-title">
+                    No categories found
+                </div>
+
+                <p>
+                    Create a category to get started.
+                </p>
+
+            </div>
+        }
+
+    </div>
+}
+else
+{
+    <!-- NORMAL CONTENT VIEW -->
+
 
                 <div class="cm-panel-heading">
 
@@ -549,10 +687,11 @@
                         </div>
                     }
 
-                </div>
-            }
+                       </div>
+                    }
+                }
 
-        </section>
+                </section>
 
 
 
@@ -637,6 +776,25 @@
                                   rows="5">@newCategory.Description</textarea>
 
                         </div>
+
+                        <div class="cm-field">
+
+                            <label for="ExploreLinkText">
+                                EXPLORE LINK TEXT
+                            </label>
+
+                            <input type="text"
+                                   id="ExploreLinkText"
+                                   name="ExploreLinkText"
+                                   value="@newCategory.ExploreLinkText"
+                                   placeholder="e.g. EXPLORE PRACTICE" />
+
+    <small>
+        Link text displayed on the homepage category card.
+        Mainly intended for main categories.
+    </small>
+
+</div>
 
 
                         <div class="cm-field">
@@ -814,6 +972,24 @@
 
                         </div>
 
+                        <div class="cm-field">
+
+                            <label for="ExploreLinkText">
+                                EXPLORE LINK TEXT
+                            </label>
+
+                            <input type="text"
+                                   id="ExploreLinkText"
+                                   name="ExploreLinkText"
+                                   value="@editCategory.ExploreLinkText"
+                                   placeholder="e.g. EXPLORE PRACTICE" />
+
+    <small>
+        Link text displayed on the homepage category card.
+        Mainly intended for main categories.
+    </small>
+
+</div>
 
                         <div class="cm-field">
 

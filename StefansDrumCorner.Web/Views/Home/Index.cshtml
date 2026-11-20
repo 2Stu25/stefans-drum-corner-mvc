@@ -107,7 +107,10 @@
                     <a asp-controller="Category"
                        asp-action="Details"
                        asp-route-slug="@category.Slug">
-                        EXPLORE CATEGORY →
+                        @(string.IsNullOrWhiteSpace(category.ExploreLinkText)
+                            ? "EXPLORE CATEGORY"
+                            : category.ExploreLinkText)
+                        →
                     </a>
 
                 </div>

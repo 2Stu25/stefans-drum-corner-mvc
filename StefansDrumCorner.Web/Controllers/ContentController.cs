@@ -36,7 +36,8 @@ namespace StefansDrumCorner.Web.Controllers
             ContentItem? newContentItem = null,
             bool newCategory = false,
             int? editCategoryId = null,
-            bool showArchived = false)
+            bool showArchived = false,
+            bool categoriesView = false)
         {
             // Load active categories for the workspace.
             var categories = await _context.ContentCategories
@@ -119,7 +120,11 @@ namespace StefansDrumCorner.Web.Controllers
 
             ContentItem? selectedItem = null;
 
-            if (!create && !newCategory && !editCategoryId.HasValue && !showArchived)
+            if (!create &&
+                !newCategory &&
+                !editCategoryId.HasValue &&
+                !showArchived &&
+                !categoriesView)
             {
                 var selectedItemId = selectedId;
 
@@ -156,6 +161,7 @@ namespace StefansDrumCorner.Web.Controllers
             ViewBag.EditCategory = categoryToEdit;
             ViewBag.ShowArchivedCategories = showArchived;
             ViewBag.ArchivedCategories = archivedCategories;
+            ViewBag.CategoriesView = categoriesView;
 
             // Existing workspace information.
             ViewBag.SelectedItem = selectedItem;

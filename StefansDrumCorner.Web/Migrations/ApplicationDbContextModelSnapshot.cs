@@ -235,6 +235,10 @@ namespace StefansDrumCorner.Web.Migrations
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
+                    b.Property<string>("ExploreLinkText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("ImageId")
                         .HasColumnType("int");
 
