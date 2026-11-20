@@ -228,7 +228,14 @@ namespace StefansDrumCorner.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ImageId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -250,6 +257,8 @@ namespace StefansDrumCorner.Web.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
 
                     b.HasIndex("ParentCategoryId");
 
@@ -436,10 +445,17 @@ namespace StefansDrumCorner.Web.Migrations
 
             modelBuilder.Entity("StefansDrumCorner.Web.Models.Content.ContentCategory", b =>
                 {
+                    b.HasOne("StefansDrumCorner.Web.Models.Content.MediaAsset", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("StefansDrumCorner.Web.Models.Content.ContentCategory", "ParentCategory")
                         .WithMany("SubCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Image");
 
                     b.Navigation("ParentCategory");
                 });

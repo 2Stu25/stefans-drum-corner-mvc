@@ -40,6 +40,12 @@ namespace StefansDrumCorner.Web.Data
                 .HasForeignKey(c => c.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<ContentCategory>()
+                .HasOne(c => c.Image)
+                .WithMany()
+                .HasForeignKey(c => c.ImageId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // ContentMedia -> ContentItem
             builder.Entity<ContentMedia>()
                 .HasOne(cm => cm.ContentItem)

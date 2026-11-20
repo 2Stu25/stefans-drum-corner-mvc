@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using StefansDrumCorner.Web.Data;
 using StefansDrumCorner.Web.Models.Content;
 using System.Text.RegularExpressions;
+using StefansDrumCorner.Web.Services.Media;
 
 namespace StefansDrumCorner.Web.Controllers
 {
@@ -12,11 +13,15 @@ namespace StefansDrumCorner.Web.Controllers
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMediaStorageService _mediaStorage;
 
-        public CategoriesController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        public CategoriesController(
+            ApplicationDbContext context,
+            IMediaStorageService mediaStorage)
+                {
+                    _context = context;
+                    _mediaStorage = mediaStorage;
+                }
 
         // =====================================================
         // CREATE
@@ -31,65 +36,99 @@ namespace StefansDrumCorner.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("Name,Subtitle,ParentCategoryId,IsActive")]
-            ContentCategory category)
-        {
-            if (string.IsNullOrWhiteSpace(category.Name))
-            {
-                ModelState.AddModelError(
-                    "Name",
-                    "A category name is required.");
-            }
+            [Bind("Name,Subtitle,Description,ParentCategoryId,IsActive")]
+            ContentCategory category,
+            IFormFile? imageFile)
+                {
+                    if (string.IsNullOrWhiteSpace(category.Name))
+                    {
+                        ModelState.AddModelError(
+                            "Name",
+                            "A category name is required.");
+                    }
 
-            if (category.ParentCategoryId == null &&
-                string.IsNullOrWhiteSpace(category.Subtitle))
-            {
-                ModelState.AddModelError(
-                    "Subtitle",
-                    "A subtitle is required for main categories.");
-            }
+                    if (category.ParentCategoryId == null &&
+                        string.IsNullOrWhiteSpace(category.Subtitle))
+                    {
+                        ModelState.AddModelError(
+                            "Subtitle",
+                            "A subtitle is required for main categories.");
+                    }
+
+                    if (category.ParentCategoryId == null &&
+                        string.IsNullOrWhiteSpace(category.Description))
+                    {
+                        ModelState.AddModelError(
+                            "Description",
+                            "A description is required for main categories.");
+                    }
 
             if (category.ParentCategoryId.HasValue)
-            {
-                bool parentExists = await _context.ContentCategories
-                    .AnyAsync(c =>
-                        c.Id == category.ParentCategoryId.Value &&
-                        c.ParentCategoryId == null &&
-                        c.IsActive);
+                    {
+                        bool parentExists = await _context.ContentCategories
+                            .AnyAsync(c =>
+                                c.Id == category.ParentCategoryId.Value &&
+                                c.ParentCategoryId == null &&
+                                c.IsActive);
 
-                if (!parentExists)
-                {
-                    ModelState.AddModelError(
-                        "ParentCategoryId",
-                        "Please select a valid main category.");
+                        if (!parentExists)
+                        {
+                            ModelState.AddModelError(
+                                "ParentCategoryId",
+                                "Please select a valid main category.");
+                        }
+                    }
+
+                    if (!ModelState.IsValid)
+                    {
+                        await LoadParentCategories();
+                        return View(category);
+                    }
+
+                    int highestDisplayOrder = await _context.ContentCategories
+                        .Where(c =>
+                            c.ParentCategoryId == category.ParentCategoryId &&
+                            c.IsActive)
+                        .Select(c => (int?)c.DisplayOrder)
+                        .MaxAsync() ?? 0;
+
+                    category.DisplayOrder = highestDisplayOrder + 1;
+
+                    category.Name = category.Name.Trim();
+                    category.Subtitle = category.Subtitle?.Trim() ?? string.Empty;
+                    category.Slug = await GenerateUniqueSlug(category.Name);
+
+                    MediaAsset? uploadedImage = null;
+
+                    try
+                    {
+                        if (imageFile != null && imageFile.Length > 0)
+                        {
+                            uploadedImage = await _mediaStorage.SaveFileAsync(
+                                imageFile,
+                                MediaType.Image);
+
+                            _context.MediaAssets.Add(uploadedImage);
+                            category.Image = uploadedImage;
+                        }
+
+                        _context.ContentCategories.Add(category);
+
+                        await _context.SaveChangesAsync();
+                    }
+                    catch
+                    {
+                        if (uploadedImage != null)
+                        {
+                            await _mediaStorage.DeleteFileAsync(
+                                uploadedImage.StorageKey);
+                        }
+
+                        throw;
+                    }
+
+                    return RedirectToContentManager();
                 }
-            }
-
-            if (!ModelState.IsValid)
-            {
-                await LoadParentCategories();
-                return View(category);
-            }
-
-            int highestDisplayOrder = await _context.ContentCategories
-                .Where(c =>
-                    c.ParentCategoryId == category.ParentCategoryId &&
-                    c.IsActive)
-                .Select(c => (int?)c.DisplayOrder)
-                .MaxAsync() ?? 0;
-
-            category.DisplayOrder = highestDisplayOrder + 1;
-
-            category.Name = category.Name.Trim();
-            category.Subtitle = category.Subtitle?.Trim() ?? string.Empty;
-            category.Slug = await GenerateUniqueSlug(category.Name);
-
-            _context.ContentCategories.Add(category);
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToContentManager();
-        }
 
         // =====================================================
         // EDIT
@@ -98,6 +137,7 @@ namespace StefansDrumCorner.Web.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var category = await _context.ContentCategories
+                .Include(c => c.Image)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (category == null)
@@ -114,8 +154,10 @@ namespace StefansDrumCorner.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
             int id,
-            [Bind("Id,Name,Subtitle,ParentCategoryId,IsActive")]
-            ContentCategory updatedCategory)
+            [Bind("Id,Name,Subtitle,Description,ParentCategoryId,IsActive")]
+            ContentCategory updatedCategory,
+            IFormFile? imageFile,
+            bool removeImage = false)
         {
             if (id != updatedCategory.Id)
             {
@@ -123,6 +165,7 @@ namespace StefansDrumCorner.Web.Controllers
             }
 
             var category = await _context.ContentCategories
+                .Include(c => c.Image)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (category == null)
@@ -143,6 +186,14 @@ namespace StefansDrumCorner.Web.Controllers
                 ModelState.AddModelError(
                     "Subtitle",
                     "A subtitle is required for main categories.");
+            }
+
+            if (updatedCategory.ParentCategoryId == null &&
+                string.IsNullOrWhiteSpace(updatedCategory.Description))
+            {
+                ModelState.AddModelError(
+                    "Description",
+                    "A description is required for main categories.");
             }
 
             if (updatedCategory.ParentCategoryId == category.Id)
@@ -167,8 +218,6 @@ namespace StefansDrumCorner.Web.Controllers
                         "Please select a valid main category.");
                 }
 
-                // A main category with subcategories cannot become
-                // a subcategory.
                 bool hasSubCategories = await _context.ContentCategories
                     .AnyAsync(c => c.ParentCategoryId == id);
 
@@ -183,6 +232,7 @@ namespace StefansDrumCorner.Web.Controllers
 
             if (!ModelState.IsValid)
             {
+                updatedCategory.Image = category.Image;
                 await LoadParentCategories();
                 return View(updatedCategory);
             }
@@ -199,10 +249,47 @@ namespace StefansDrumCorner.Web.Controllers
 
             category.Name = newName;
             category.Subtitle = updatedCategory.Subtitle?.Trim() ?? string.Empty;
+            category.Description = updatedCategory.Description?.Trim() ?? string.Empty;
             category.ParentCategoryId = updatedCategory.ParentCategoryId;
             category.IsActive = updatedCategory.IsActive;
 
-            await _context.SaveChangesAsync();
+            MediaAsset? previousImage = category.Image;
+            MediaAsset? uploadedImage = null;
+
+            try
+            {
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    uploadedImage = await _mediaStorage.SaveFileAsync(
+                        imageFile,
+                        MediaType.Image);
+
+                    _context.MediaAssets.Add(uploadedImage);
+                    category.Image = uploadedImage;
+                }
+                else if (removeImage)
+                {
+                    category.Image = null;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                if (uploadedImage != null)
+                {
+                    await _mediaStorage.DeleteFileAsync(
+                        uploadedImage.StorageKey);
+                }
+
+                throw;
+            }
+
+            if (previousImage != null &&
+                (uploadedImage != null || removeImage))
+            {
+                await DeleteImageIfUnusedAsync(previousImage);
+            }
 
             return RedirectToContentManager();
         }
@@ -413,6 +500,38 @@ namespace StefansDrumCorner.Web.Controllers
         // =====================================================
         // HELPERS
         // =====================================================
+
+        private async Task DeleteImageIfUnusedAsync(MediaAsset image)
+        {
+            bool usedByContent = await _context.ContentMedia
+                .AnyAsync(m => m.MediaAssetId == image.Id);
+
+            bool usedByCategory = await _context.ContentCategories
+                .AnyAsync(c => c.ImageId == image.Id);
+
+            if (usedByContent || usedByCategory)
+            {
+                return;
+            }
+
+            _context.MediaAssets.Remove(image);
+
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _mediaStorage.DeleteFileAsync(image.StorageKey);
+            }
+            catch (IOException)
+            {
+                // The database reference is removed.
+                // A failed physical cleanup can be handled separately.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Avoid failing the category update because of file permissions.
+            }
+        }
 
         private async Task LoadParentCategories()
         {
