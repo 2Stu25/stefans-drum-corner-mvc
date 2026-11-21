@@ -1,0 +1,162 @@
+﻿
+@using StefansDrumCorner.Web.Models.Content
+@model ContentCategory
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    var contentItems = ViewBag.ContentItems as List<ContentItem>
+        ?? new List<ContentItem>();
+
+    var subCategories = Model.SubCategories
+        .Where(c => c.IsActive)
+        .OrderBy(c => c.DisplayOrder)
+        .ToList();
+}
+
+<main class="practice-lab-page">
+
+    <!-- PAGE INTRODUCTION -->
+
+    <header class="practice-lab-header">
+
+        <div class="practice-lab-kicker">
+            THE DRUM CORNER / @Model.Name.ToUpperInvariant()
+        </div>
+
+        <h1>@Model.Name</h1>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Subtitle))
+        {
+            <h2>@Model.Subtitle</h2>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="practice-lab-intro">
+                @Model.Description
+            </p>
+        }
+
+        <div class="practice-lab-rule"></div>
+
+    </header>
+
+
+    <!-- SUBCATEGORIES -->
+
+    @if (subCategories.Any())
+    {
+        <section class="practice-lab-topics">
+
+            <h2 class="practice-lab-section-heading">
+                <span>EXPLORE TOPICS</span>
+                <span class="practice-lab-section-number">
+                    @subCategories.Count.ToString("00") TOPICS
+                </span>
+            </h2>
+
+            <div class="practice-lab-topic-grid">
+
+                @foreach (var subCategory in subCategories)
+                {
+                    <a asp-controller="Category"
+                       asp-action="Details"
+                       asp-route-slug="@subCategory.Slug"
+                       class="practice-lab-topic">
+
+                        <span class="topic-number">
+                            @subCategory.DisplayOrder.ToString("00")
+                        </span>
+
+                        <h2>@subCategory.Name</h2>
+
+                        @if (!string.IsNullOrWhiteSpace(subCategory.Description))
+                        {
+                            <p>@subCategory.Description</p>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(subCategory.Subtitle))
+                        {
+                            <p>@subCategory.Subtitle</p>
+                        }
+
+                        <span class="topic-arrow">
+                            EXPLORE TOPIC →
+                        </span>
+
+                    </a>
+                }
+
+            </div>
+
+        </section>
+    }
+
+
+    <!-- PUBLISHED CONTENT -->
+
+    @if (contentItems.Any())
+    {
+        <section class="public-category-content">
+
+            <h2 class="practice-lab-section-heading">
+                <span>CONTENT</span>
+                <span class="practice-lab-section-number">
+                    @contentItems.Count.ToString("00") ITEMS
+                </span>
+            </h2>
+
+            <div class="practice-lab-topic-grid">
+
+                @foreach (var item in contentItems)
+                {
+                    var thumbnail = item.ContentMedia
+                        .FirstOrDefault(m => m.Role == MediaRole.Thumbnail);
+
+                    <article class="practice-lab-topic">
+
+                        @if (thumbnail != null)
+                        {
+                            <img src="@Url.Content("~/" + thumbnail.MediaAsset.StorageKey)"
+                                 alt="@item.Title" />
+                        }
+
+                        <span class="topic-number">
+                            CONTENT
+                        </span>
+
+                        <h2>@item.Title</h2>
+
+                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            <p>@item.Description</p>
+                        }
+
+                    </article>
+                }
+
+            </div>
+
+        </section>
+    }
+
+
+    <!-- EMPTY CATEGORY -->
+
+    @if (!subCategories.Any() && !contentItems.Any())
+    {
+        <p class="practice-lab-intro">
+            New content for this category is coming soon.
+        </p>
+    }
+
+
+    <!-- BACK LINK -->
+
+    <div class="public-category-back">
+        <a asp-controller="Home" asp-action="Index">
+            ← BACK TO HOME
+        </a>
+    </div>
+
+</main>
