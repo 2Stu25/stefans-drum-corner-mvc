@@ -1381,7 +1381,35 @@
     }
 }
 
+/* NEW CATEGORY HEADER LAYOUT */
 
+#newCategoryForm .cm-properties-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+    #newCategoryForm .cm-properties-header h2.cm-properties-title {
+        white-space: nowrap;
+        width: auto;
+        margin: 0;
+    }
+
+    #newCategoryForm .cm-properties-header #newCategoryDescription {
+        display: block;
+        width: 100%;
+        margin: 0;
+        color: #888;
+        font-size: 13px;
+        font-weight: 400;
+    }
+
+        #newCategoryForm .cm-properties-header #newCategoryDescription strong {
+            color: #888;
+            font-weight: 600;
+        }
 /* =========================================================
    18. FULL WIDTH MEDIA FOOTER
    ========================================================= */

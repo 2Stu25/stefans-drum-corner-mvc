@@ -36,9 +36,10 @@ namespace StefansDrumCorner.Web.Controllers
             ContentItem? newContentItem = null,
             bool newCategory = false,
             int? editCategoryId = null,
+            int? parentCategoryId = null,
             bool showArchived = false,
             bool categoriesView = false)
-        {
+                    {
             // Load active categories for the workspace.
             var categories = await _context.ContentCategories
                 .Where(c => c.IsActive)
@@ -73,6 +74,7 @@ namespace StefansDrumCorner.Web.Controllers
                     return NotFound();
                 }
             }
+            
 
             // Load content items.
             var query = _context.ContentItems
@@ -159,6 +161,22 @@ namespace StefansDrumCorner.Web.Controllers
             // Category workspace information.
             ViewBag.NewCategoryMode = newCategory;
             ViewBag.EditCategory = categoryToEdit;
+                var newCategoryModel = new ContentCategory
+                {
+                    IsActive = true
+                };
+
+                // Only allow an active main category to be selected as the parent.
+                if (parentCategoryId.HasValue &&
+                    categories.Any(c =>
+                        c.Id == parentCategoryId.Value &&
+                        c.ParentCategoryId == null &&
+                        c.IsActive))
+                {
+                    newCategoryModel.ParentCategoryId = parentCategoryId;
+                }
+
+            ViewBag.NewCategory = newCategoryModel;
             ViewBag.ShowArchivedCategories = showArchived;
             ViewBag.ArchivedCategories = archivedCategories;
             ViewBag.CategoriesView = categoriesView;
@@ -515,6 +533,133 @@ namespace StefansDrumCorner.Web.Controllers
             }
         }
 
+        // =====================================================
+        // REPLACE MEDIA
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReplaceMedia(
+    int contentItemId,
+    int mediaId,
+    IFormFile? replacementFile)
+        {
+            var media = await _context.ContentMedia
+                .Include(m => m.MediaAsset)
+                .FirstOrDefaultAsync(m =>
+                    m.Id == mediaId &&
+                    m.ContentItemId == contentItemId);
+
+            if (media == null || media.MediaAsset == null)
+            {
+                return NotFound();
+            }
+
+            if (replacementFile == null || replacementFile.Length == 0)
+            {
+                TempData["MediaError"] = "Please select a replacement file.";
+
+                return RedirectToAction(
+                    nameof(Index),
+                    new { selectedId = contentItemId });
+            }
+
+            var oldAsset = media.MediaAsset;
+
+            if (oldAsset.MediaType == MediaType.Other)
+            {
+                TempData["MediaError"] =
+                    "This media type cannot be replaced using this upload form.";
+
+                return RedirectToAction(
+                    nameof(Index),
+                    new { selectedId = contentItemId });
+            }
+
+            MediaAsset? replacementAsset = null;
+            bool oldAssetIsOrphaned = false;
+
+            try
+            {
+                // Save the new physical file using the existing media type.
+                // The storage service validates its extension and file signature.
+                replacementAsset = await _mediaStorage.SaveFileAsync(
+                    replacementFile,
+                    oldAsset.MediaType,
+                    oldAsset.AltText);
+
+                await using var transaction =
+                    await _context.Database.BeginTransactionAsync();
+
+                // Add the new asset to the database.
+                _context.MediaAssets.Add(replacementAsset);
+
+                await _context.SaveChangesAsync();
+
+                // Point the existing attachment to the new asset.
+                // Its Role, DisplayOrder and Caption remain unchanged.
+                media.MediaAssetId = replacementAsset.Id;
+                media.MediaAsset = replacementAsset;
+
+                await _context.SaveChangesAsync();
+
+                // Check whether the old asset is still used elsewhere.
+                oldAssetIsOrphaned = !await _context.ContentMedia
+                    .AnyAsync(m => m.MediaAssetId == oldAsset.Id);
+
+                if (oldAssetIsOrphaned)
+                {
+                    _context.MediaAssets.Remove(oldAsset);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                // The database transaction has failed or rolled back.
+                // Remove the newly uploaded file so it is not left unused.
+                if (replacementAsset != null)
+                {
+                    try
+                    {
+                        await _mediaStorage.DeleteFileAsync(
+                            replacementAsset.StorageKey);
+                    }
+                    catch
+                    {
+                        // Do not hide the original replacement error.
+                    }
+                }
+
+                TempData["MediaError"] =
+                    "The media replacement failed. The original attachment has been retained.";
+
+                return RedirectToAction(
+                    nameof(Index),
+                    new { selectedId = contentItemId });
+            }
+
+            // Only delete the old physical file after the database transaction
+            // has committed successfully.
+            if (oldAssetIsOrphaned)
+            {
+                try
+                {
+                    await _mediaStorage.DeleteFileAsync(
+                        oldAsset.StorageKey);
+                }
+                catch
+                {
+                    TempData["MediaError"] =
+                        "The replacement succeeded, but the old physical file could not be deleted.";
+                }
+            }
+
+            return RedirectToAction(
+                nameof(Index),
+                new { selectedId = contentItemId });
+        }
 
         // =====================================================
         // CREATE CONTENT

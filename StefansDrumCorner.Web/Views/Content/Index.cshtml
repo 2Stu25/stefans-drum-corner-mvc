@@ -43,6 +43,9 @@
     var newCategory = ViewBag.NewCategory as ContentCategory
     ?? new ContentCategory();
 
+    var newCategoryParent = rootCategories.FirstOrDefault(
+    c => c.Id == newCategory.ParentCategoryId);
+
     bool categoryFormMode = newCategoryMode || editCategory != null;
 }
 
@@ -72,11 +75,7 @@
        
         <nav class="cm-top-menu">
 
-            <a asp-controller="Content"
-                asp-action="Index">
-                File
-            </a>
-
+           
             <a asp-controller="Content"
                 asp-action="Index"
                 class="cm-top-menu-active">
@@ -116,18 +115,24 @@
     </div>
 
     <div class="cm-category-heading">
-        CATEGORIES
+        MAIN CATEGORIES
     </div>
 
     <div class="cm-category-actions">
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
+        
 
         <a asp-controller="Content"
            asp-action="Index"
            asp-route-categoriesView="true"
            asp-route-newCategory="true"
-           class="cm-category-create">
+           class="cm-new-button">
             + NEW CATEGORY
         </a>
+
+    </div>
 
         <a asp-controller="Content"
            asp-action="Index"
@@ -466,7 +471,7 @@
             </div>
 
             <h2 class="cm-panel-title">
-                CATEGORIES
+                MAIN CATEGORIES &amp; COLLECTIONS
             </h2>
 
             <div class="cm-panel-description">
@@ -538,7 +543,7 @@
                             </div>
 
                             <div class="cm-item-category">
-                                SUBCATEGORY OF @root.Name
+                                COLLECTION IN @root.Name
                             </div>
 
                         </div>
@@ -581,24 +586,9 @@ else
                             CONTENT
                         </div>
 
-                        @if (selectedCategory != null)
-                        {
-                            <a asp-controller="Content"
-                               asp-action="Index"
-                               asp-route-editCategoryId="@selectedCategory.Id"
-                               asp-route-categoryId="@selectedCategory.Id"
-                               class="cm-panel-title">
-
-                                @categoryHeading
-
-                            </a>
-                        }
-                        else
-                        {
-                            <h2 class="cm-panel-title">
-                                @categoryHeading
-                            </h2>
-                        }
+                        <h2 class="cm-panel-title">
+                            @categoryHeading
+                        </h2>
 
                         <div class="cm-panel-description">
                             @itemCount @(itemCount == 1 ? "item" : "items")
@@ -634,6 +624,11 @@ else
                             var itemCategory = categories.FirstOrDefault(
                                 c => c.Id == item.CategoryId);
 
+                            var itemParentCategory = itemCategory?.ParentCategoryId == null
+                                ? null
+                                : categories.FirstOrDefault(
+                                    c => c.Id == itemCategory.ParentCategoryId);
+
                             <a asp-controller="Content"
                                asp-action="Index"
                                asp-route-selectedId="@item.Id"
@@ -648,7 +643,14 @@ else
                                     </div>
 
                                     <div class="cm-item-category">
-                                        @(itemCategory?.Name ?? "Uncategorised")
+                                        @if (itemParentCategory != null)
+                                        {
+                                            @itemParentCategory.Name <text> / </text> @itemCategory!.Name
+                                        }
+                                        else
+                                        {
+                                            @(itemCategory?.Name ?? "Uncategorised")
+                                        }
                                     </div>
 
                                 </div>
@@ -697,31 +699,53 @@ else
 
         <!-- RIGHT PANEL -->
         <section class="cm-properties-panel">
+            
 
 
             @if (newCategoryMode)
             {
                 <!-- NEW CATEGORY FORM -->
 
-                <form asp-controller="Categories"
-                      asp-action="Create"
-                      method="post"
-                      enctype="multipart/form-data"
-                      class="cm-properties-form">
+               <form asp-controller="Categories"
+                  asp-action="Create"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="cm-properties-form"
+                  id="newCategoryForm">
 
-                    <div class="cm-properties-header">
+                   
+                <div class="cm-properties-header">
 
-                        <div>
-                            <div class="cm-panel-section-label">
-                                CATEGORY MANAGER
-                            </div>
-
-                            <h2 class="cm-properties-title">
-                                NEW CATEGORY
-                            </h2>
-                        </div>
-
+                    <div class="cm-panel-section-label" id="newCategoryContext">
+                        @if (newCategoryParent != null)
+                        {
+                            @newCategoryParent.Name <text> / CATEGORY MANAGER</text>
+                        }
+                        else
+                        {
+                            <text>MAIN CATEGORY MANAGER</text>
+                        }
                     </div>
+
+                    <h2 class="cm-properties-title">
+                        @(newCategoryParent != null
+                            ? "NEW COLLECTION"
+                            : "NEW MAIN CATEGORY")
+                    </h2>
+
+                    @if (newCategoryParent != null)
+                    {
+                        <div id="newCategoryDescription"
+                             style="display:block; width:100%; margin-top:6px;">
+                            Creating a new collection inside <strong>@newCategoryParent.Name</strong>
+                        </div>
+                    }
+
+                </div>
+
+
+
+                   
 
 
                     <div asp-validation-summary="All"
@@ -731,21 +755,19 @@ else
 
                     <div class="cm-property-section">
 
-                        <div class="cm-property-section-heading">
-                            GENERAL
-                        </div>
-
+                        
 
                         <div class="cm-field">
 
-                            <label for="Name">
-                                CATEGORY NAME
+                            <label for="Name" id="newCategoryNameLabel">
+                                @(newCategoryParent != null ? "COLLECTION NAME" : "CATEGORY NAME")
                             </label>
 
                             <input type="text"
                                id="Name"
                                name="Name"
                                value="@newCategory.Name"
+                               placeholder="@(newCategoryParent != null ? "Enter collection name" : "Enter category name")"
                                required />
 
                         </div>
@@ -800,7 +822,7 @@ else
                         <div class="cm-field">
 
                             <label for="ParentCategoryId">
-                                PARENT CATEGORY
+                                PARENT MAIN CATEGORY
                             </label>
 
                             <select id="ParentCategoryId"
@@ -822,11 +844,10 @@ else
 
                             <small>
                                 Leave this empty to create a main category.
-                                Select a main category to create a subcategory.
+                                Select a main category to create a collection within it.
                             </small>
 
-                        </div>
-
+                        
                     </div>
 
 
@@ -834,6 +855,7 @@ else
 
                         <div class="cm-property-section-heading">
                             CATEGORY IMAGE
+
                         </div>
 
                         <div class="cm-field">
@@ -876,7 +898,9 @@ else
 
                         <button type="submit"
                                 class="cm-save-button">
-                            CREATE CATEGORY
+                            @(newCategory.ParentCategoryId.HasValue
+                                ? "CREATE COLLECTION"
+                                : "CREATE MAIN CATEGORY")
                         </button>
 
                     </div>
@@ -884,7 +908,7 @@ else
                 </form>
             }
 
-            else if (editCategory != null)
+            @if (editCategory != null)
             {
                 <!-- EDIT CATEGORY FORM -->
 
@@ -900,7 +924,9 @@ else
                            value="@editCategory.Id" />
 
 
-                    <div class="cm-properties-header">
+                   
+                    <div class="cm-properties-header"
+                         style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
 
                         <div>
                             <div class="cm-panel-section-label">
@@ -908,17 +934,26 @@ else
                             </div>
 
                             <h2 class="cm-properties-title">
-                                EDIT CATEGORY
+                                EDIT CATEGORY OR COLLECTION
                             </h2>
                         </div>
 
-                        <span class="cm-item-number">
-                            #@editCategory.Id
-                        </span>
+                        @if (editCategory.ParentCategoryId == null)
+                        {
+                            <a asp-controller="Content"
+                               asp-action="Index"
+                               asp-route-categoriesView="true"
+                               asp-route-newCategory="true"
+                               asp-route-parentCategoryId="@editCategory.Id"
+                               class="cm-new-button">
+                                + NEW COLLECTION
+                            </a>
+                        }
 
                     </div>
 
 
+                       
                     <div asp-validation-summary="All"
                          class="cm-validation-summary">
                     </div>
@@ -926,9 +961,34 @@ else
 
                     <div class="cm-property-section">
 
+                        
+                        
+                   
+                    @* COLLECTIONS BELONGING TO THIS MAIN CATEGORY *@
+
+                    @if (editCategory.ParentCategoryId == null)
+                    {
+                        var childCollections = categories
+                            .Where(c => c.ParentCategoryId == editCategory.Id)
+                            .OrderBy(c => c.DisplayOrder)
+                            .ThenBy(c => c.Name)
+                            .ToList();
+
+                        <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:nowrap;">
+
                         <div class="cm-property-section-heading">
-                            GENERAL
+                            COLLECTIONS (@childCollections.Count)
                         </div>
+
+                        <p class="cm-panel-description"
+                       style="margin:0; line-height:1; white-space:nowrap;">
+                        Collections belonging to @editCategory.Name.
+                    </p>
+
+                    </div>
+}
+
+
 
 
                         <div class="cm-field">
@@ -1098,10 +1158,14 @@ else
 
                     </div>
 
+                
                 </form>
-            }
 
-            else if (createMode)
+                        
+
+}
+
+else if (createMode)
             {
                 <!-- NEW CONTENT FORM -->
 
@@ -1134,9 +1198,7 @@ else
 
                     <div class="cm-property-section">
 
-                        <div class="cm-property-section-heading">
-                            GENERAL
-                        </div>
+                        
 
 
                         <div class="cm-field">
@@ -1299,23 +1361,34 @@ else
                            value="@selectedItem.Id" />
 
 
-                    <div class="cm-properties-header">
+                    
+                    <div class="cm-properties-header"
+                         style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
 
                         <div>
                             <div class="cm-panel-section-label">
-                                CONTENT MANAGER
+                                CATEGORY MANAGER
                             </div>
 
                             <h2 class="cm-properties-title">
-                                EDIT CONTENT
+                                EDIT CATEGORY OR COLLECTION
                             </h2>
                         </div>
 
-                        <span class="cm-item-number">
-                            #@selectedItem.Id
-                        </span>
+                        @if (editCategory != null && editCategory.ParentCategoryId == null)
+                        {
+                            <a asp-controller="Content"
+                               asp-action="Index"
+                               asp-route-categoriesView="true"
+                               asp-route-newCategory="true"
+                               asp-route-parentCategoryId="@editCategory.Id"
+                               class="cm-new-button">
+                                + NEW COLLECTION
+                            </a>
+                        }
 
                     </div>
+
 
 
                     <div asp-validation-summary="All"
@@ -1325,9 +1398,7 @@ else
 
                     <div class="cm-property-section">
 
-                        <div class="cm-property-section-heading">
-                            GENERAL
-                        </div>
+                        
 
 
                         <div class="cm-field">
@@ -1493,174 +1564,211 @@ else
 
 
 
-        @if (selectedItem != null || createMode)
-        {
-            <!-- FULL WIDTH MEDIA FOOTER -->
-            <section class="cm-media-footer">
+        
+@if (selectedItem != null || createMode)
+{
+    <!-- FULL WIDTH MEDIA FOOTER -->
+    <section class="cm-media-footer">
 
+        <!-- EXISTING ATTACHMENTS -->
+        <div class="cm-media-footer-existing">
 
-                <!-- EXISTING ATTACHMENTS -->
-                <div class="cm-media-footer-existing">
+            <div class="cm-media-footer-heading">
+                ATTACHED MEDIA
+            </div>
 
-                    <div class="cm-media-footer-heading">
-                        ATTACHED MEDIA
-                    </div>
+            @if (TempData["MediaError"] is string mediaError)
+            {
+                <div class="cm-validation-summary">
+                    @mediaError
+                </div>
+            }
 
-                    @if (selectedItem != null &&
-                         selectedItem.ContentMedia != null &&
-                         selectedItem.ContentMedia.Any())
+            @if (selectedItem != null &&
+                 selectedItem.ContentMedia != null &&
+                 selectedItem.ContentMedia.Any())
+            {
+                <div class="cm-media-footer-list">
+
+                    @foreach (var media in selectedItem.ContentMedia)
                     {
-                        <div class="cm-media-footer-list">
+                        var replacementAccept = media.MediaAsset?.MediaType switch
+                        {
+                            MediaType.Video => ".mp4,.webm,.mov",
+                            MediaType.Image => ".jpg,.jpeg,.png,.webp",
+                            MediaType.Document => ".pdf",
+                            MediaType.Audio => ".mp3,.wav",
+                            _ => ""
+                        };
 
-                            @foreach (var media in selectedItem.ContentMedia)
-                            {
-                                <div class="cm-media-footer-row">
+                        <div class="cm-media-footer-row">
 
-                                    <span class="cm-media-role">
-                                        @media.Role:
-                                    </span>
+                            <span class="cm-media-role">
+                                @media.Role:
+                            </span>
 
-                                    <span class="cm-media-filename">
-                                        @media.MediaAsset?.OriginalFileName
-                                    </span>
+                            <span class="cm-media-filename">
+                                @media.MediaAsset?.OriginalFileName
+                            </span>
 
-                                    <span class="cm-media-details">
-                                        @media.MediaAsset?.MediaType
+                            <span class="cm-media-details">
+                                @media.MediaAsset?.MediaType
 
-                                        @if (media.MediaAsset != null)
-                                        {
-                                            <text> · @((media.MediaAsset.FileSizeBytes / 1024.0).ToString("N0")) KB</text>
-                                        }
-                                    </span>
+                                @if (media.MediaAsset != null)
+                                {
+                                    <text> · @((media.MediaAsset.FileSizeBytes / 1024.0).ToString("N0")) KB</text>
+                                }
+                            </span>
 
+                            <!-- REPLACE MEDIA -->
+                            <form asp-controller="Content"
+                                  asp-action="ReplaceMedia"
+                                  method="post"
+                                  enctype="multipart/form-data"
+                                  class="cm-replace-media-form">
 
-                                    <form asp-controller="Content"
-                                          asp-action="RemoveMedia"
-                                          method="post"
-                                          class="cm-remove-media-form">
+                                <input type="hidden"
+                                       name="contentItemId"
+                                       value="@selectedItem.Id" />
 
-                                        <input type="hidden"
-                                               name="contentItemId"
-                                               value="@selectedItem.Id" />
+                                <input type="hidden"
+                                       name="mediaId"
+                                       value="@media.Id" />
 
-                                        <input type="hidden"
-                                               name="mediaId"
-                                               value="@media.Id" />
+                                <input type="file"
+                                       name="replacementFile"
+                                       accept="@replacementAccept"
+                                       required />
 
-                                        <details class="cm-remove-confirm">
+                                <button type="submit"
+                                        class="cm-save-button">
+                                    REPLACE
+                                </button>
 
-                                            <summary class="cm-remove-media-button">
-                                                REMOVE
-                                            </summary>
+                            </form>
 
-                                            <div class="cm-remove-confirm-panel">
+                            <!-- REMOVE MEDIA -->
+                            <form asp-controller="Content"
+                                  asp-action="RemoveMedia"
+                                  method="post"
+                                  class="cm-remove-media-form">
 
-                                                <span>
-                                                    Remove this attachment?
-                                                </span>
+                                <input type="hidden"
+                                       name="contentItemId"
+                                       value="@selectedItem.Id" />
 
-                                                <div class="cm-remove-confirm-actions">
+                                <input type="hidden"
+                                       name="mediaId"
+                                       value="@media.Id" />
 
-                                                    <button type="button"
-                                                            class="cm-remove-cancel"
-                                                            onclick="this.closest('details').open = false">
-                                                        CANCEL
-                                                    </button>
+                                <details class="cm-remove-confirm">
 
-                                                    <button type="submit"
-                                                            class="cm-remove-confirm-button">
-                                                        CONFIRM REMOVE
-                                                    </button>
+                                    <summary class="cm-remove-media-button">
+                                        REMOVE
+                                    </summary>
 
-                                                </div>
+                                    <div class="cm-remove-confirm-panel">
 
-                                            </div>
+                                        <span>
+                                            Remove this attachment?
+                                        </span>
 
-                                        </details>
+                                        <div class="cm-remove-confirm-actions">
 
-                                    </form>
+                                            <button type="button"
+                                                    class="cm-remove-cancel"
+                                                    onclick="this.closest('details').open = false">
+                                                CANCEL
+                                            </button>
 
-                                </div>
-                            }
+                                            <button type="submit"
+                                                    class="cm-remove-confirm-button">
+                                                CONFIRM REMOVE
+                                            </button>
 
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="cm-no-media">
-                            No media attached.
+                                        </div>
+                                    </div>
+                                </details>
+                            </form>
+
                         </div>
                     }
 
                 </div>
-
-
-
-                <!-- ADD MEDIA -->
-                <div class="cm-media-footer-add">
-
-                    <div class="cm-media-footer-heading">
-                        ADD MEDIA
-                    </div>
-
-                    <p class="cm-upload-description">
-                        Select one or more files.
-                    </p>
-
-                    <input type="file"
-                           id="MediaFiles"
-                           name="mediaFiles"
-                           form="@(createMode ? "createContentForm" : "editContentForm")"
-                           accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.mp3,.wav,.pdf"
-                           multiple />
-
-                    <small>
-                        Videos: MP4, WebM, MOV.
-                        Images: JPG, PNG, WebP.
-                        Audio: MP3, WAV.
-                        Documents: PDF.
-                    </small>
-
-
-                    <div class="cm-media-footer-actions">
-
-                        @if (createMode)
-                        {
-                            <a asp-controller="Content"
-                               asp-action="Index"
-                               asp-route-categoryId="@selectedCategoryId"
-                               asp-route-status="@selectedStatus"
-                               class="cm-cancel-button">
-                                CANCEL
-                            </a>
-                        }
-                        else
-                        {
-                            <a asp-controller="Content"
-                               asp-action="Index"
-                               asp-route-selectedId="@selectedItem!.Id"
-                               asp-route-categoryId="@selectedCategoryId"
-                               asp-route-status="@selectedStatus"
-                               class="cm-cancel-button">
-                                CANCEL
-                            </a>
-                        }
-
-
-                        <button type="submit"
-                                form="@(createMode ? "createContentForm" : "editContentForm")"
-                                class="cm-save-button">
-
-                            @(createMode ? "CREATE CONTENT" : "SAVE CHANGES")
-
-                        </button>
-
-                    </div>
-
+            }
+            else
+            {
+                <div class="cm-no-media">
+                    No media attached.
                 </div>
+            }
 
-            </section>
-        }
+        </div>
+
+        <!-- ADD MEDIA -->
+        <div class="cm-media-footer-add">
+
+            <div class="cm-media-footer-heading">
+                ADD MEDIA
+            </div>
+
+            <p class="cm-upload-description">
+                Select one or more files.
+            </p>
+
+            <input type="file"
+                   id="MediaFiles"
+                   name="mediaFiles"
+                   form="@(createMode ? "createContentForm" : "editContentForm")"
+                   accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.mp3,.wav,.pdf"
+                   multiple />
+
+            <small>
+                Videos: MP4, WebM, MOV.
+                Images: JPG, PNG, WebP.
+                Audio: MP3, WAV.
+                Documents: PDF.
+            </small>
+
+            <div class="cm-media-footer-actions">
+
+                @if (createMode)
+                {
+                    <a asp-controller="Content"
+                       asp-action="Index"
+                       asp-route-categoryId="@selectedCategoryId"
+                       asp-route-status="@selectedStatus"
+                       class="cm-cancel-button">
+                        CANCEL
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Content"
+                       asp-action="Index"
+                       asp-route-selectedId="@selectedItem!.Id"
+                       asp-route-categoryId="@selectedCategoryId"
+                       asp-route-status="@selectedStatus"
+                       class="cm-cancel-button">
+                        CANCEL
+                    </a>
+                }
+
+                <button type="submit"
+                        form="@(createMode ? "createContentForm" : "editContentForm")"
+                        class="cm-save-button">
+
+                    @(createMode ? "CREATE CONTENT" : "SAVE CHANGES")
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+}
+
 
     </main>
 
@@ -1684,3 +1792,4 @@ else
     </footer>
 
 </div>
+
