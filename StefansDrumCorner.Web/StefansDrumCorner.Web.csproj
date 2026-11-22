@@ -12,9 +12,9 @@
     <Folder Include="wwwroot\images\practice\" />
     <Folder Include="wwwroot\lib\pdfjs\build\" />
     <Folder Include="wwwroot\fonts\" />
-    <Folder Include="wwwroot\uploads\content\images\" />
     <Folder Include="wwwroot\uploads\content\documents\" />
     <Folder Include="wwwroot\uploads\content\audio\" />
+    <Folder Include="wwwroot\uploads\content\images\" />
     <Folder Include="wwwroot\uploads\content\videos\" />
     <Folder Include="wwwroot\videos\" />
   </ItemGroup>

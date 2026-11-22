@@ -36,7 +36,7 @@ namespace StefansDrumCorner.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("Name,Subtitle,Description,ParentCategoryId,IsActive")]
+            [Bind("Name,Subtitle,Description,ExploreLinkText,ParentCategoryId,IsActive")]
             ContentCategory category,
             IFormFile? imageFile)
                 {
@@ -97,6 +97,7 @@ namespace StefansDrumCorner.Web.Controllers
 
                     category.Name = category.Name.Trim();
                     category.Subtitle = category.Subtitle?.Trim() ?? string.Empty;
+                    category.ExploreLinkText = category.ExploreLinkText?.Trim() ?? string.Empty;
                     category.Slug = await GenerateUniqueSlug(category.Name);
 
                     MediaAsset? uploadedImage = null;
@@ -155,7 +156,7 @@ namespace StefansDrumCorner.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
             int id,
-            [Bind("Id,Name,Subtitle,Description,ParentCategoryId,IsActive")]
+            [Bind("Id,Name,Subtitle,Description,ExploreLinkText,ParentCategoryId,IsActive")]
             ContentCategory updatedCategory,
             IFormFile? imageFile,
             bool removeImage = false)
@@ -256,6 +257,7 @@ namespace StefansDrumCorner.Web.Controllers
             category.Description = updatedCategory.Description?.Trim() ?? string.Empty;
             category.ParentCategoryId = updatedCategory.ParentCategoryId;
             category.IsActive = updatedCategory.IsActive;
+            category.ExploreLinkText = updatedCategory.ExploreLinkText?.Trim() ?? string.Empty;
 
             MediaAsset? previousImage = category.Image;
             MediaAsset? uploadedImage = null;

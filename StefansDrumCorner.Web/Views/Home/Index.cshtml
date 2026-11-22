@@ -104,10 +104,14 @@
 
                     <p>@category.Description</p>
 
-                    <a asp-controller="Category"
-                       asp-action="Details"
-                       asp-route-slug="@category.Slug">
-                        EXPLORE CATEGORY →
+                    <a href="@(category.Slug == "practice-lab"
+                        ? Url.Action("Index", "PracticeLab")
+                        : Url.Action("Details", "Category", new { slug = category.Slug }))">
+
+                        @(string.IsNullOrWhiteSpace(category.ExploreLinkText)
+                            ? "EXPLORE CATEGORY"
+                            : category.ExploreLinkText)
+                        →
                     </a>
 
                 </div>

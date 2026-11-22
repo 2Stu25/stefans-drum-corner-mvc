@@ -35,9 +35,12 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 var app = builder.Build();
+
 await IdentitySeeder.SeedAdminAsync(
     app.Services,
     app.Configuration);
+
+await PracticeLabCategorySeeder.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

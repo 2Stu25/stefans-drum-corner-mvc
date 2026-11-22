@@ -1,5 +1,23 @@
-﻿@{
+﻿
+@using StefansDrumCorner.Web.Models.Content
+@using System.Linq
+@using System.IO
+
+@{
     ViewData["Title"] = "Practice Lab";
+
+    var category = ViewBag.Category as ContentCategory;
+
+    var subCategories =
+        (ViewBag.SubCategories as IEnumerable<ContentCategory>
+            ?? Enumerable.Empty<ContentCategory>())
+        .OrderBy(c => c.DisplayOrder)
+        .ToList();
+
+    var contentItems =
+        (ViewBag.ContentItems as IEnumerable<ContentItem>
+            ?? Enumerable.Empty<ContentItem>())
+        .ToList();
 }
 
 <div class="practice-lab-page">
@@ -34,45 +52,30 @@
 
         <div class="practice-lab-topic-grid">
 
-            <a href="#practice-pad" class="practice-lab-topic">
-                <span class="topic-number">01</span>
-                <h2>Practice Pad</h2>
-                <p>
-                    Rebound, dynamics, precision and developing
-                    hand technique.
-                </p>
-                <span class="topic-arrow">EXPLORE &rsaquo;</span>
-            </a>
+            @foreach (var collection in subCategories)
+            {
+                <a href="#@collection.Slug"
+                   class="practice-lab-topic">
 
-            <a href="#grip-sticking" class="practice-lab-topic">
-                <span class="topic-number">02</span>
-                <h2>Grip &amp; Sticking</h2>
-                <p>
-                    Traditional grip, matched grip, sticking
-                    patterns and rudiments.
-                </p>
-                <span class="topic-arrow">EXPLORE &rsaquo;</span>
-            </a>
+                    <span class="topic-number">
+                        @collection.DisplayOrder.ToString("00")
+                    </span>
 
-            <a href="#weighted-training" class="practice-lab-topic">
-                <span class="topic-number">03</span>
-                <h2>Weighted Training</h2>
-                <p>
-                    Weighted practice sticks, wrist weights
-                    and training experiments.
-                </p>
-                <span class="topic-arrow">EXPLORE &rsaquo;</span>
-            </a>
+                    <h2>@collection.Name</h2>
 
-            <a href="#exercises-studies" class="practice-lab-topic">
-                <span class="topic-number">04</span>
-                <h2>Exercises &amp; Studies</h2>
-                <p>
-                    Original exercises, etudes, coordination
-                    and musical studies.
-                </p>
-                <span class="topic-arrow">EXPLORE &rsaquo;</span>
-            </a>
+                    @if (!string.IsNullOrWhiteSpace(collection.Description))
+                    {
+                        <p>@collection.Description</p>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(collection.Subtitle))
+                    {
+                        <p>@collection.Subtitle</p>
+                    }
+
+                    <span class="topic-arrow">EXPLORE &rsaquo;</span>
+
+                </a>
+            }
 
         </div>
 
@@ -86,214 +89,349 @@
             <span>FROM THE PRACTICE ROOM</span>
             <span class="practice-lab-section-number">LATEST MATERIAL</span>
         </div>
+                @foreach (var item in contentItems
+                    .Where(item =>
+                        item.CategoryId.HasValue &&
+                        subCategories.Any(c => c.Id == item.CategoryId.Value))
+                    .OrderBy(item => item.DisplayOrder)
+                    .ThenBy(item => item.Title))
+                {
+                    var collection = subCategories
+                        .First(c => c.Id == item.CategoryId!.Value);
+
+                    var firstItemInCollectionId = contentItems
+                        .Where(x => x.CategoryId == collection.Id)
+                        .OrderBy(x => x.DisplayOrder)
+                        .ThenBy(x => x.Title)
+                        .Select(x => x.Id)
+                        .FirstOrDefault();
+
+                    var articleId = !string.IsNullOrWhiteSpace(item.Slug)
+                        ? item.Slug
+                        : $"practice-item-{item.Id}";
+
+                    var articleAnchorId = item.Id == firstItemInCollectionId
+                        ? collection.Slug
+                        : articleId;
+
+                    var attachments = item.ContentMedia?
+                        .Where(m => m.MediaAsset != null)
+                        .OrderBy(m => m.DisplayOrder)
+                        .ToList()
+                        ?? new List<ContentMedia>();
+
+                    var mainVideo = attachments
+                        .FirstOrDefault(m => m.Role == MediaRole.MainVideo)
+                        ?.MediaAsset;
+
+                    var thumbnail = attachments
+                        .FirstOrDefault(m => m.Role == MediaRole.Thumbnail)
+                        ?.MediaAsset;
+
+                    var documents = attachments
+                        .Where(m => m.Role == MediaRole.Document)
+                        .ToList();
+
+                    var galleryImage = attachments
+                        .FirstOrDefault(m => m.Role == MediaRole.GalleryImage)
+                        ?.MediaAsset;
+
+                    var displayImage = thumbnail ?? galleryImage;
+
+                    
+
+                    var hasDocuments = documents.Any();
+                    var hasVideo = mainVideo != null;
+                    var hasImage = displayImage != null;
+
+                    var categoryName = collection.Name;
+
+                    var formatLabel = hasVideo
+                        ? (hasDocuments ? "VIDEO STUDY" : "VIDEO")
+                        : hasImage
+                            ? "PRACTICE MATERIAL"
+                            : "STUDY MATERIAL";
 
 
-        <!-- 01 / SDJ MALIK ETUDE -->
-        <article class="practice-lab-material is-active"
-                 id="exercises-studies"
-                 data-practice-item>
+                    @if (hasVideo && hasDocuments)
+                    {
+                        <!-- VIDEO ARTICLE WITH SHEET MUSIC -->
 
-            <div class="material-video">
+                        <article class="practice-lab-material is-active"
+                                 id="@articleAnchorId"
+                                 data-practice-item>
 
-                <video controls preload="metadata" playsinline>
-                    <source src="@Url.Content("~/videos/sdjmalik-etude-web.mp4")"
-                            type="video/mp4">
-                    Your browser does not support HTML5 video.
-                </video>
+                            <div class="material-video">
+
+                                <video controls
+                                       preload="metadata"
+                                       playsinline>
+
+                                    <source src="@Url.Content("~/" + mainVideo.StorageKey.TrimStart('/'))"
+                                            type="@mainVideo.ContentType">
+
+                                    Your browser does not support HTML5 video.
+
+                                </video>
+
+                            </div>
+
+
+                            <div class="material-description">
+
+                                <div class="material-category">
+                                    @categoryName
+                                    <span> / @formatLabel</span>
+                                </div>
+
+                                <h2>@item.Title</h2>
+
+                                <p>@item.Description</p>
+
+
+                                <div class="sheet-music-actions">
+
+                                    <div class="sheet-music-heading">
+                                        SHEET MUSIC
+                                    </div>
+
+                                    @foreach (var document in documents)
+                                    {
+                                        var fileName = document.MediaAsset.OriginalFileName;
+
+                                        var documentLabel =
+                                            !string.IsNullOrWhiteSpace(document.Caption)
+                                                ? document.Caption
+                                                : fileName.Contains("original", StringComparison.OrdinalIgnoreCase)
+                                                    ? "FULL ETUDE"
+                                                    : fileName.Contains("extended", StringComparison.OrdinalIgnoreCase)
+                                                        ? "STUDY VERSION"
+                                                        : System.IO.Path.GetFileNameWithoutExtension(fileName);
+
+                                        <button type="button"
+                                                class="sheet-music-link"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#sheetMusicModal"
+                                                data-pdf="@Url.Content("~/" + document.MediaAsset.StorageKey.TrimStart('/'))">
+
+                                            <span>
+                                                @((documents.IndexOf(document) + 1).ToString("00"))
+                                            </span>
+
+                                            @documentLabel
+
+                                            <span class="sheet-music-format">
+                                                PDF ↗
+                                            </span>
+
+                                        </button>
+                                    }
+
+                                </div>
+
+
+                                <div class="material-meta">
+                                    <span>FORMAT: VIDEO</span>
+                                    <span>ATTACHMENTS: @documents.Count PDF</span>
+                                    <span>TYPE: @categoryName.ToUpperInvariant()</span>
+                                </div>
+
+                            </div>
+
+                        </article>
+                    }
+                    else if (hasVideo)
+                    {
+                        <!-- EXPANDABLE VIDEO ARTICLE -->
+
+                        <article class="practice-lab-material material-placeholder video-expandable"
+                                 id="@articleAnchorId"
+                                 data-practice-item>
+
+                            <button type="button"
+                                    class="video-minimize-button"
+                                    aria-label="Minimize video"
+                                    title="Minimize video">
+                                −
+                            </button>
+
+
+                            <div class="material-placeholder-visual video-preview">
+
+                                <video class="material-thumbnail-video"
+                                       preload="metadata"
+                                       playsinline
+                                       @if (hasImage)
+                                       {
+                                           <text>poster="@Url.Content("~/" + displayImage.StorageKey.TrimStart('/'))"</text>
+                                       }>
+
+                                    <source src="@Url.Content("~/" + mainVideo.StorageKey.TrimStart('/'))"
+                                            type="@mainVideo.ContentType">
+
+                                    Your browser does not support HTML5 video.
+
+                                </video>
+
+
+                                <button type="button"
+                                        class="video-play-button"
+                                        aria-label="Expand and play video">
+
+                                    <span class="video-play-icon"></span>
+
+                                </button>
+
+                                <span class="video-thumbnail-label">
+                                    VIDEO
+                                </span>
+
+                            </div>
+
+
+                            <div class="material-description">
+
+                                <div class="material-category">
+                                    @categoryName
+                                    <span> / @formatLabel</span>
+                                </div>
+
+                                <h2>@item.Title</h2>
+
+                                <p>@item.Description</p>
+
+
+                                <div class="material-meta">
+                                    <span>FORMAT: VIDEO</span>
+                                    <span>INSTRUMENT: DRUMS</span>
+                                    <span>TYPE: @categoryName.ToUpperInvariant()</span>
+                                </div>
+
+                            </div>
+
+                        </article>
+                    }
+                    else if (hasImage)
+                    {
+                        <!-- IMAGE / PRACTICE MATERIAL -->
+
+                        <article class="practice-lab-material material-placeholder"
+                                 id="@articleAnchorId"
+                                 data-practice-item>
+
+                            <div class="material-placeholder-visual">
+
+                                <img src="@Url.Content("~/" + displayImage.StorageKey.TrimStart('/'))"
+                                     alt="@(displayImage.AltText ?? item.Title)"
+                                     asp-append-version="true">
+
+                                <div class="video-thumbnail-overlay">
+
+                                    <span class="video-thumbnail-label">
+                                        PRACTICE MATERIAL
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="material-description">
+
+                                <div class="material-category">
+                                    @categoryName
+                                    <span> / @formatLabel</span>
+                                </div>
+
+                                <h2>@item.Title</h2>
+
+                                <p>@item.Description</p>
+
+
+                                <div class="material-meta">
+                                    <span>FORMAT: IMAGE</span>
+                                    <span>INSTRUMENT: DRUMS</span>
+                                    <span>TYPE: @categoryName.ToUpperInvariant()</span>
+                                </div>
+
+                            </div>
+
+                        </article>
+                    }
+                    else
+                    {
+                        <!-- ARTICLE WITHOUT MEDIA -->
+
+                        <article class="practice-lab-material"
+                                 id="@articleAnchorId"
+                                 data-practice-item>
+
+                            <div class="material-description">
+
+                                <div class="material-category">
+                                    @categoryName
+                                    <span> / STUDY MATERIAL</span>
+                                </div>
+
+                                <h2>@item.Title</h2>
+
+                                <p>@item.Description</p>
+
+                            </div>
+
+                        </article>
+                    }
+              
+          
+
+        }
+
+
+        <!-- CONTENT ASSIGNED DIRECTLY TO THE MAIN PRACTICE LAB CATEGORY -->
+
+        @{
+            var mainCategoryItems = contentItems
+                .Where(item => item.CategoryId == category.Id)
+                .OrderBy(item => item.DisplayOrder)
+                .ThenBy(item => item.Title)
+                .ToList();
+        }
+
+        @if (mainCategoryItems.Any())
+        {
+            <div id="practice-lab-main"
+                 class="practice-lab-anchor">
+
+                <span>00</span>
+                <h2>@category.Name</h2>
 
             </div>
 
-            <div class="material-description">
+            @foreach (var item in mainCategoryItems)
+            {
+                <article class="practice-lab-material"
+                         id="@item.Slug">
 
-                <div class="material-category">
-                    EXERCISES &amp; STUDIES
-                    <span> / VIDEO STUDY</span>
-                </div>
+                    <div class="material-description">
 
-                <h2>SDJ Malik Etude</h2>
+                        <div class="material-category">
+                            @category.Name
+                        </div>
 
-                <p>
-                    A technical study performed on the practice pad.
-                    An exploration of sticking, control and precision
-                    through a structured musical exercise.
-                </p>
+                        <h2>@item.Title</h2>
 
-                <div class="sheet-music-actions">
+                        <p>@item.Description</p>
 
-                    <div class="sheet-music-heading">
-                        SHEET MUSIC
                     </div>
 
-                    <button type="button"
-                            class="sheet-music-link"
-                            data-bs-toggle="modal"
-                            data-bs-target="#sheetMusicModal"
-                            data-pdf="/documents/ChopCity_original.pdf">
-                        <span>01</span>
-                        FULL ETUDE
-                        <span class="sheet-music-format">PDF ↗</span>
-                    </button>
-
-                    <button type="button"
-                            class="sheet-music-link"
-                            data-bs-toggle="modal"
-                            data-bs-target="#sheetMusicModal"
-                            data-pdf="/documents/ChopCity_extended_02.pdf">
-                        <span>02</span>
-                        STUDY VERSION
-                        <span class="sheet-music-format">PDF ↗</span>
-                    </button>
-
-                </div>
-
-                <div class="material-meta">
-                    <span>FORMAT: VIDEO</span>
-                    <span>INSTRUMENT: DRUMS</span>
-                    <span>TYPE: PRACTICE PAD</span>
-                </div>
-
-            </div>
-
-        </article>
-
-
-        
-        
-        <!-- 02 / HAND TECHNIQUE -->
-        <article class="practice-lab-material material-placeholder video-expandable"
-                 id="hand-technique-study">
-
-            <button type="button"
-                    class="video-minimize-button"
-                    aria-label="Minimize video"
-                    title="Minimize video">
-                −
-            </button>
-
-            <div class="material-placeholder-visual video-preview">
-
-                <video class="material-thumbnail-video"
-                       preload="metadata"
-                       playsinline
-                       poster="@Url.Content("~/images/practice/hand-technique.png")">
-
-                    <source src="@Url.Content("~/videos/hand-technique-test.mp4")"
-                            type="video/mp4">
-
-                    Your browser does not support HTML5 video.
-                </video>
-
-                <button type="button"
-                        class="video-play-button"
-                        aria-label="Expand and play hand technique video">
-                    <span class="video-play-icon"></span>
-                </button>
-
-                <span class="video-thumbnail-label">VIDEO 02</span>
-
-            </div>
-
-            <div class="material-description">
-
-                <div class="material-category">
-                    GRIP &amp; STICKING
-                    <span> / TECHNIQUE STUDY</span>
-                </div>
-
-                <h2>Hand Technique Study</h2>
-
-                <p>
-                    A focused demonstration of hand movement,
-                    sticking control and consistency.
-                </p>
-
-                <div class="material-meta">
-                    <span>FORMAT: VIDEO</span>
-                    <span>INSTRUMENT: PRACTICE PAD</span>
-                    <span>TYPE: TECHNIQUE</span>
-                </div>
-
-            </div>
-        </article>
-
-
-
-        <!-- 03 / RUDIMENTAL EXERCISE -->
-        <article class="practice-lab-material material-placeholder"
-                 id="rudimental-exercise">
-
-            <div class="material-placeholder-visual">
-
-                <img src="~/images/practice/rudimental-exercise.jpg"
-                     alt="Rudimental drum practice"
-                     asp-append-version="true">
-
-                <div class="video-thumbnail-overlay">
-                    <span class="video-play-icon">
-                        <i class="bi bi-play-circle"></i>
-                    </span>
-                    <span class="video-thumbnail-label">VIDEO 03</span>
-                </div>
-
-            </div>
-
-            <div class="material-description">
-
-                <div class="material-category">
-                    EXERCISES &amp; STUDIES
-                    <span> / PRACTICE SESSION</span>
-                </div>
-
-                <h2>Rudimental Exercise</h2>
-
-                <p>
-                    Working on accuracy, timing and dynamic control
-                    through a structured rudimental exercise.
-                </p>
-
-                <div class="material-meta">
-                    <span>FORMAT: VIDEO</span>
-                    <span>INSTRUMENT: DRUMS</span>
-                    <span>TYPE: RUDIMENTS</span>
-                </div>
-
-            </div>
-
-        </article>
+                </article>
+            }
+        }
 
     </section>
 
 
-    <!-- FUTURE CONTENT AREAS -->
-    <section class="practice-lab-more">
-
-        <div id="practice-pad" class="practice-lab-anchor">
-            <span>01</span>
-            <h2>Practice Pad</h2>
-            <p>
-                Developing control, rebound, dynamics and precision.
-            </p>
-        </div>
-
-        <div id="grip-sticking" class="practice-lab-anchor">
-            <span>02</span>
-            <h2>Grip &amp; Sticking</h2>
-            <p>
-                Exploring traditional grip, matched grip and
-                different sticking approaches.
-            </p>
-        </div>
-
-        <div id="weighted-training" class="practice-lab-anchor">
-            <span>03</span>
-            <h2>Weighted Training</h2>
-            <p>
-                Experiments with stainless steel practice sticks
-                and weighted training methods.
-            </p>
-        </div>
-
-    </section>
+    <!-- PDF VIEWER MODAL -->
 
     <div class="modal fade"
          id="sheetMusicModal"
@@ -307,17 +445,20 @@
             <div class="modal-content">
 
                 <div class="modal-header">
+
                     <h5 class="modal-title" id="sheetMusicModalLabel">
                         Sheet Music
                     </h5>
 
-                    <button type="button" class="btn-close"
+                    <button type="button"
+                            class="btn-close"
                             data-bs-dismiss="modal"
                             aria-label="Close">
                     </button>
+
                 </div>
 
-                
+
                 <div class="modal-body">
 
                     <div class="pdf-viewer">
@@ -340,6 +481,7 @@
                                 NEXT
                             </button>
 
+
                             <div class="pdf-zoom-controls">
 
                                 <button type="button"
@@ -360,6 +502,7 @@
 
                         </div>
 
+
                         <div class="pdf-canvas-container">
                             <canvas id="pdfCanvas"></canvas>
                         </div>
@@ -368,20 +511,20 @@
 
                 </div>
 
-
             </div>
         </div>
     </div>
-
 
 </div>
 
 
 <script type="module">
+
     import * as pdfjsLib from '/lib/pdfjs/build/pdf.mjs';
 
     pdfjsLib.GlobalWorkerOptions.workerSrc =
         '/lib/pdfjs/build/pdf.worker.mjs';
+
 
     const modal = document.getElementById('sheetMusicModal');
     const canvas = document.getElementById('pdfCanvas');
@@ -397,23 +540,26 @@
     const pageInfo = document.getElementById('pdfPageInfo');
     const zoomLevel = document.getElementById('pdfZoomLevel');
 
+
     let pdfDocument = null;
     let currentPage = 1;
     let zoom = 1;
     let renderTask = null;
     let pdfUrl = null;
 
-    
+
+    // Select the PDF belonging to the clicked button.
+
     document.querySelectorAll(
         '[data-bs-target="#sheetMusicModal"][data-pdf]'
     ).forEach(button => {
 
         button.addEventListener('click', function () {
             pdfUrl = this.getAttribute('data-pdf');
-            console.log('Selected PDF:', pdfUrl);
         });
 
     });
+
 
     modal.addEventListener('show.bs.modal', function (event) {
 
@@ -426,17 +572,22 @@
     });
 
 
+    // Load the selected PDF after the modal is visible.
+
     modal.addEventListener('shown.bs.modal', async function () {
-            if (!pdfUrl) {
-                console.error('No PDF file selected. Check the data-pdf attribute.');
-                pageInfo.textContent = 'No PDF selected';
-                return;
-            }
+
+        if (!pdfUrl) {
+            console.error('No PDF file selected.');
+            pageInfo.textContent = 'No PDF selected';
+            return;
+        }
 
         try {
+
             const loadingTask = pdfjsLib.getDocument({
                 url: pdfUrl
             });
+
             pdfDocument = await loadingTask.promise;
 
             currentPage = 1;
@@ -445,12 +596,19 @@
             await renderPage();
 
         } catch (error) {
+
             console.error('PDF loading error:', error);
             pageInfo.textContent = 'Unable to load PDF';
+
         }
+
     });
 
+
+    // Render the current PDF page.
+
     async function renderPage() {
+
         if (!pdfDocument) return;
 
         if (renderTask) {
@@ -489,11 +647,15 @@
         renderTask = page.render(renderContext);
 
         try {
+
             await renderTask.promise;
+
         } catch (error) {
+
             if (error.name !== 'RenderingCancelledException') {
                 throw error;
             }
+
         }
 
         pageInfo.textContent =
@@ -503,37 +665,62 @@
 
         prevButton.disabled = currentPage <= 1;
         nextButton.disabled = currentPage >= pdfDocument.numPages;
+
     }
 
+
+    // Previous page.
+
     prevButton.addEventListener('click', async function () {
+
         if (currentPage > 1) {
             currentPage--;
             await renderPage();
         }
+
     });
 
+
+    // Next page.
+
     nextButton.addEventListener('click', async function () {
+
         if (pdfDocument && currentPage < pdfDocument.numPages) {
             currentPage++;
             await renderPage();
         }
+
     });
 
+
+    // Zoom in.
+
     zoomInButton.addEventListener('click', async function () {
+
         if (zoom < 2) {
             zoom = Math.min(2, zoom + 0.1);
             await renderPage();
         }
+
     });
 
+
+    // Zoom out.
+
     zoomOutButton.addEventListener('click', async function () {
+
         if (zoom > 0.5) {
             zoom = Math.max(0.5, zoom - 0.1);
             await renderPage();
         }
+
     });
 
+
+    // Reset the viewer when the modal closes.
+
     modal.addEventListener('hidden.bs.modal', function () {
+
         if (renderTask) {
             renderTask.cancel();
             renderTask = null;
@@ -549,10 +736,12 @@
 
         pageInfo.textContent = 'Page 0 of 0';
         zoomLevel.textContent = '100%';
+
     });
 
-        
-        
+
+    // EXPANDABLE VIDEO ARTICLES
+
     document.querySelectorAll(".video-expandable").forEach(article => {
 
         const video = article.querySelector("video");
@@ -563,7 +752,7 @@
         if (!video || !preview || !playButton || !minimizeButton) return;
 
 
-        // Detect original video dimensions and aspect ratio
+        // Detect original video dimensions and aspect ratio.
 
         video.addEventListener("loadedmetadata", () => {
 
@@ -571,16 +760,18 @@
             const height = video.videoHeight;
 
             if (width && height) {
+
                 preview.style.setProperty(
                     "--video-aspect-ratio",
                     `${width} / ${height}`
                 );
+
             }
 
         });
 
 
-        // Expand article and start playback
+        // Expand article and start playback.
 
         function expandVideo() {
 
@@ -590,14 +781,16 @@
             playButton.hidden = true;
 
             video.play().catch(error => {
+
                 console.warn("Video playback could not start:", error);
                 playButton.hidden = false;
+
             });
 
         }
 
 
-        // Pause video and restore compact layout
+        // Pause video and restore compact layout.
 
         function minimizeVideo() {
 
@@ -611,7 +804,7 @@
         }
 
 
-        // Clicking the article expands it
+        // Clicking the article expands it.
 
         article.addEventListener("click", event => {
 
@@ -624,7 +817,7 @@
         });
 
 
-        // Play button
+        // Play button.
 
         playButton.addEventListener("click", event => {
 
@@ -634,7 +827,7 @@
         });
 
 
-        // Minimize button
+        // Minimize button.
 
         minimizeButton.addEventListener("click", event => {
 
@@ -645,9 +838,4 @@
 
     });
 
-
-
-    
 </script>
-
-
