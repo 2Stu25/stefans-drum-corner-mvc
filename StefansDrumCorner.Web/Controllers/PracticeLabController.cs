@@ -18,19 +18,23 @@ namespace StefansDrumCorner.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var category = await _context.ContentCategories
-                .Include(c => c.SubCategories
-                    .Where(s => s.IsActive))
                 .FirstOrDefaultAsync(c =>
                     c.Slug == "practice-lab" &&
                     c.IsActive);
 
             if (category == null)
-            {
                 return NotFound();
-            }
 
-            var categoryIds = category.SubCategories
-                .Select(s => s.Id)
+            var subCategories = await _context.ContentCategories
+                .Where(c =>
+                    c.ParentCategoryId == category.Id &&
+                    c.IsActive)
+                .OrderBy(c => c.DisplayOrder)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
+
+            var categoryIds = subCategories
+                .Select(c => c.Id)
                 .Append(category.Id)
                 .ToList();
 
@@ -46,7 +50,7 @@ namespace StefansDrumCorner.Web.Controllers
                 .ToListAsync();
 
             ViewBag.Category = category;
-            ViewBag.SubCategories = category.SubCategories;
+            ViewBag.SubCategories = subCategories;
             ViewBag.ContentItems = contentItems;
 
             return View();

@@ -394,10 +394,23 @@ namespace StefansDrumCorner.Web.Controllers
 
                 await transaction.CommitAsync();
 
-                // Delete physical files only after the database
+
+                // Delete uploaded files only after the database
                 // transaction succeeds.
+                //
+                // Legacy files stored directly in wwwroot are deliberately
+                // preserved and must not be deleted by Content Manager.
                 foreach (var asset in orphanedAssets)
                 {
+                    if (string.IsNullOrWhiteSpace(asset.StorageKey) ||
+                        !asset.StorageKey.Replace('\\', '/')
+                            .StartsWith(
+                                "uploads/content/",
+                                StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     try
                     {
                         await _mediaStorage.DeleteFileAsync(asset.StorageKey);
@@ -413,6 +426,7 @@ namespace StefansDrumCorner.Web.Controllers
                         // A leftover physical file can be cleaned up later.
                     }
                 }
+
 
                 return RedirectToAction(
                     nameof(Index),
